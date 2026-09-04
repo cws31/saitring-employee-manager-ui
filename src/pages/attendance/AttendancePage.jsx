@@ -9,11 +9,11 @@ export default function AttendancePage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  // Modal State for editing/adding reason and status
-  const [modalData, setModalData] = useState(null); // { employee, day, status, reason }
+
+  const [modalData, setModalData] = useState(null); 
 
   const year = currentDate.getFullYear();
-  const month = currentDate.getMonth() + 1; // 1-indexed
+  const month = currentDate.getMonth() + 1; 
 
   const daysInMonth = new Date(year, month, 0).getDate();
   const daysArray = Array.from({ length: daysInMonth }, (_, i) => i + 1);
@@ -30,7 +30,7 @@ export default function AttendancePage() {
 
       const attRes = await AttendanceService.getMonthlyAttendance(year, month);
       
-      // Map data into structure: { [employeeId]: { [day]: { status, reason } } }
+     
       const map = {};
       attRes.data.forEach(att => {
         const day = new Date(att.attendanceDate).getDate();
