@@ -24,5 +24,11 @@ export const monthClosingService = {
     getMonthClosingByYearAndMonth: async (year, month) => {
         const response = await axiosInstance.get(`/month-closings/search?year=${year}&month=${month}`);
         return response.data;
+    },
+
+   
+    toggleHisabComplete: async (detailId, completed) => {
+        const response = await axiosInstance.put(`/month-closings/detail/${detailId}/complete?completed=${completed}`);
+        return response.data;
     }
 };
