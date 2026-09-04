@@ -9,14 +9,14 @@ export default function EmployeeList() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   
-  // Track which employee row has its action menu open
+
   const [activeMenuId, setActiveMenuId] = useState(null);
   const menuRef = useRef(null);
 
   useEffect(() => {
     fetchEmployees();
 
-    // Close action dropdown if clicked outside
+  
     const handleClickOutside = (event) => {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
         setActiveMenuId(null);
