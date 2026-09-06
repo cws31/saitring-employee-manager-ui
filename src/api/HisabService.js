@@ -1,13 +1,18 @@
-import axiosInstance from './axiosInstance';
-
 export const monthClosingService = {
+
     previewMonthClosing: async (closingData) => {
-        const response = await axiosInstance.post('/month-closings/preview', closingData);
+        const response = await axiosInstance.post(
+            '/month-closings/preview',
+            closingData
+        );
         return response.data;
     },
 
     closeMonth: async (closingData) => {
-        const response = await axiosInstance.post('/month-closings', closingData);
+        const response = await axiosInstance.post(
+            '/month-closings',
+            closingData
+        );
         return response.data;
     },
 
@@ -17,18 +22,23 @@ export const monthClosingService = {
     },
 
     getMonthClosingById: async (id) => {
-        const response = await axiosInstance.get(`/month-closings/${id}`);
+        const response = await axiosInstance.get(
+            `/month-closings/${id}`
+        );
         return response.data;
     },
 
     getMonthClosingByYearAndMonth: async (year, month) => {
-        const response = await axiosInstance.get(`/month-closings/search?year=${year}&month=${month}`);
+        const response = await axiosInstance.get(
+            `/month-closings/search?year=${year}&month=${month}`
+        );
         return response.data;
     },
 
-   
     toggleHisabComplete: async (detailId, completed) => {
-        const response = await axiosInstance.put(`/month-closings/detail/${detailId}/complete?completed=${completed}`);
+        const response = await axiosInstance.put(
+            `/month-closings/detail/${detailId}/complete?completed=${completed}`
+        );
         return response.data;
     }
 };
