@@ -1,8 +1,6 @@
-// File: src/pages/MonthClosingPage.jsx
-
-import React, { useState, useEffect } from 'react';
-import { monthClosingService } from '../../api/HisabService';
-import { settlementService } from '../../api/settlementService';
+import React, { useState, useEffect } from "react";
+import { monthClosingService } from "../../api/HisabService";
+import { settlementService } from "../../api/settlementService";
 
 const MonthClosingPage = () => {
     const currentDate = new Date();
@@ -15,9 +13,7 @@ const MonthClosingPage = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
-
     const [activeHistoryEmployee, setActiveHistoryEmployee] = useState(null);
-
 
     const [showSettlementModal, setShowSettlementModal] = useState(false);
     const [settlementForm, setSettlementForm] = useState({
@@ -42,17 +38,16 @@ const MonthClosingPage = () => {
             setSelectedClosing(data);
             
             if (data && data.details) {
-                const initialRowInputs = { ...rowPaymentInputs };
+                const initialRowInputs = {};
                 data.details.forEach(d => {
                     const empId = d.employee?.id || d.employeeId;
-                    if (empId && initialRowInputs[empId] === undefined) {
+                    if (empId) {
                         const remaining = d.remainingBalance !== undefined ? d.remainingBalance : 0;
                         initialRowInputs[empId] = remaining > 0 ? remaining : '';
                     }
                 });
                 setRowPaymentInputs(initialRowInputs);
 
-               
                 if (activeHistoryEmployee) {
                     const updatedEmpDetail = data.details.find(
                         row => (row.employee?.id || row.employeeId) === (activeHistoryEmployee.employee?.id || activeHistoryEmployee.employeeId)
@@ -64,6 +59,7 @@ const MonthClosingPage = () => {
             }
         } catch (err) {
             setSelectedClosing(null);
+            setRowPaymentInputs({});
             setError(err.response?.data?.message || "Report not found for selected month/year.");
         } finally {
             setLoading(false);
@@ -107,21 +103,39 @@ const MonthClosingPage = () => {
     };
 
     const handleToggleHisabComplete = async (detailId, currentStatus) => {
-        try {
-            const newStatus = !currentStatus;
-            await monthClosingService.markEmployeeHisabCompleted(detailId, newStatus);
-            
-            setSelectedClosing(prev => {
-                if (!prev) return prev;
-                return {
-                    ...prev,
-                    details: prev.details.map(row => row.id === detailId ? { ...row, hisabCompleted: newStatus } : row)
-                };
-            });
-        } catch (err) {
-            alert("Failed to update Hisab completion status.");
-        }
-    };
+    try {
+        const newStatus = !currentStatus;
+
+        await monthClosingService.toggleHisabComplete(
+            detailId,
+            newStatus
+        );
+
+        setSelectedClosing(prev => {
+            if (!prev) return prev;
+
+            return {
+                ...prev,
+                details: prev.details.map(row =>
+                    row.id === detailId
+                        ? {
+                            ...row,
+                            hisabCompleted: newStatus
+                        }
+                        : row
+                )
+            };
+        });
+
+    } catch (err) {
+        console.error(
+            "Failed to update Hisab completion status",
+            err
+        );
+
+        alert("Failed to update Hisab completion status.");
+    }
+};
 
     const handleOpenEditSettlement = (item) => {
         setSettlementForm({
@@ -148,6 +162,7 @@ const MonthClosingPage = () => {
             setShowSettlementModal(false);
             loadMonthReport(year, month);
         } catch (err) {
+            console.error("Failed to update settlement record", err);
             alert("Failed to update settlement record.");
         }
     };
@@ -158,6 +173,7 @@ const MonthClosingPage = () => {
                 await settlementService.deleteSettlement(id);
                 loadMonthReport(year, month);
             } catch (err) {
+                console.error("Failed to delete settlement", err);
                 alert("Failed to delete settlement.");
             }
         }
@@ -167,7 +183,6 @@ const MonthClosingPage = () => {
         <div style={{ padding: '20px', maxWidth: '1350px', margin: '0 auto' }}>
             <h2>Month Closing & Hisab Reports</h2>
 
-            {/* Month & Year Selection Bar */}
             <div style={{ background: '#f9f9f9', padding: '15px 20px', borderRadius: '8px', marginBottom: '25px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', display: 'flex', gap: '20px', alignItems: 'center' }}>
                 <div>
                     <label style={{ marginRight: '8px', fontWeight: 'bold' }}>Year: </label>
@@ -198,7 +213,6 @@ const MonthClosingPage = () => {
 
             {error && <div style={{ color: 'red', marginBottom: '15px' }}>{error}</div>}
 
-            {/* Detailed Report View */}
             {selectedClosing && (
                 <div style={{ background: '#fff', padding: '20px', borderRadius: '8px', border: '1px solid #ccc', marginBottom: '30px' }}>
                     <h3 style={{ margin: '0 0 15px 0' }}>📊 Report Details for {selectedClosing.month}/{selectedClosing.year}</h3>
@@ -210,8 +224,7 @@ const MonthClosingPage = () => {
                                 <th style={{ padding: '8px', border: '1px solid #ddd' }}>Present Days</th>
                                 <th style={{ padding: '8px', border: '1px solid #ddd' }}>Total Earning</th>
                                 <th style={{ padding: '8px', border: '1px solid #ddd' }}>Advance</th>
-                                <th style={{ padding: '8px', border: '1px solid #ddd' }}>Net Payable</th>
-                                <th style={{ padding: '8px', border: '1px solid #ddd', color: '#d9534f' }}>Remaining Balance</th>
+                                <th style={{ padding: '8px', border: '1px solid #ddd', color: '#333' }}>Remaining Balance</th>
                                 <th style={{ padding: '8px', border: '1px solid #ddd', background: '#e8f4fd', textAlign: 'center' }}>Hisab Done</th>
                                 <th style={{ padding: '8px', border: '1px solid #ddd', background: '#e2f0cb', textAlign: 'center' }}>Amount Paid (History)</th>
                                 <th style={{ padding: '8px', border: '1px solid #ddd', background: '#e6ffed', textAlign: 'center' }}>Quick Pay</th>
@@ -221,16 +234,25 @@ const MonthClosingPage = () => {
                             {selectedClosing.details.map((d, index) => {
                                 const empId = d.employee?.id || d.employeeId;
                                 const empSettlements = d.settlements || [];
+                                const balance = d.remainingBalance !== undefined ? d.remainingBalance : 0;
+                                
+                                const balanceColor = balance < 0 ? '#dc3545' : balance > 0 ? '#28a745' : '#007bff';
+
+                                const prevBalance = d.previousBalance ?? d.openingBalance ?? d.lastMonthBalance ?? 0;
+                                const advanceVal = d.totalAdvance ?? 0;
+                                const earningVal = d.totalEarning ?? 0;
 
                                 return (
                                     <tr key={d.id || index}>
                                         <td style={{ padding: '8px', border: '1px solid #ddd' }}>{d.employeeName}</td>
                                         <td style={{ padding: '8px', border: '1px solid #ddd' }}>{d.totalPresences}</td>
-                                        <td style={{ padding: '8px', border: '1px solid #ddd' }}>{d.totalEarning}</td>
-                                        <td style={{ padding: '8px', border: '1px solid #ddd' }}>{d.totalAdvance}</td>
-                                        <td style={{ padding: '8px', border: '1px solid #ddd', fontWeight: 'bold' }}>{d.netPayable}</td>
-                                        <td style={{ padding: '8px', border: '1px solid #ddd', fontWeight: 'bold', color: '#d9534f' }}>
-                                            {d.remainingBalance !== undefined ? d.remainingBalance : '-'}
+                                        <td style={{ padding: '8px', border: '1px solid #ddd' }}>{earningVal}</td>
+                                        <td style={{ padding: '8px', border: '1px solid #ddd' }}>{advanceVal}</td>
+                                        <td style={{ padding: '8px', border: '1px solid #ddd', fontWeight: 'bold', color: balanceColor }}>
+                                            <div>{balance}</div>
+                                            <div style={{ fontSize: '11px', fontWeight: 'normal', color: '#555', marginTop: '2px' }}>
+                                                (last month balance({prevBalance}) + month advance({advanceVal}) - months earning({earningVal}))
+                                            </div>
                                         </td>
                                         <td style={{ padding: '8px', border: '1px solid #ddd', background: '#f0f7ff', textAlign: 'center' }}>
                                             <label style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
@@ -246,7 +268,6 @@ const MonthClosingPage = () => {
                                             </label>
                                         </td>
                                         
-                                        {/* Amount Paid Summary with Interactive Link to Open History Modal */}
                                         <td style={{ padding: '8px', border: '1px solid #ddd', background: '#f4f9ec', textAlign: 'center' }}>
                                             <div style={{ fontWeight: 'bold', color: '#333', marginBottom: '3px' }}>
                                                 ₹{d.amountPaid || 0}
@@ -291,7 +312,6 @@ const MonthClosingPage = () => {
                 </div>
             )}
 
-            {/* Payment History Modal */}
             {activeHistoryEmployee && (
                 <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 999 }}>
                     <div style={{ background: '#fff', padding: '20px', borderRadius: '8px', width: '500px', maxHeight: '80vh', overflowY: 'auto', boxShadow: '0 4px 12px rgba(0,0,0,0.2)' }}>
@@ -337,7 +357,6 @@ const MonthClosingPage = () => {
                 </div>
             )}
 
-            {/* Settlement Edit Modal */}
             {showSettlementModal && (
                 <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
                     <div style={{ background: '#fff', padding: '25px', borderRadius: '8px', width: '400px', boxShadow: '0 4px 8px rgba(0,0,0,0.2)' }}>
