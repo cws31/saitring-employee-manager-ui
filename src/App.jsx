@@ -6,7 +6,7 @@ import Dashboard from './pages/Dashboard';
 import EmployeeList from './pages/employees/EmployeeList';
 import AttendancePage from './pages/attendance/AttendancePage';
 import AdvancePage from './pages/advances/AdvancePage';
-import MonthClosingPage from './pages/monthClosing/MonthClosingPage';
+import HisabPage from './pages/hisab/HisabPage';
 
 function App() {
   return (
@@ -19,7 +19,7 @@ function App() {
             <Route path="/employees" element={<EmployeeList />} />
             <Route path="/attendance" element={<AttendancePage />} />
             <Route path="/advances" element={<AdvancePage />} />
-            <Route path="/month-closing" element={<MonthClosingPage />} />
+            <Route path="/month-closing" element={<HisabPage />} />
           </Routes>
         </main>
       </div>
