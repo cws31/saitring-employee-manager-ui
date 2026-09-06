@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import EmployeeService from '../../api/employeeService';
 import EmployeeFormModal from './EmployeeFormModal';
 
@@ -8,22 +8,20 @@ export default function EmployeeList() {
   const [editData, setEditData] = useState(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  
 
   const [activeMenuId, setActiveMenuId] = useState(null);
-  const menuRef = useRef(null);
 
   useEffect(() => {
     fetchEmployees();
 
-  
-    const handleClickOutside = (event) => {
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
+    // Close dropdown globally when clicking anywhere else on the screen
+    const handleGlobalClick = (event) => {
+      if (!event.target.closest('.action-menu-container')) {
         setActiveMenuId(null);
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('click', handleGlobalClick);
+    return () => document.removeEventListener('click', handleGlobalClick);
   }, []);
 
   const fetchEmployees = async () => {
@@ -126,11 +124,14 @@ export default function EmployeeList() {
                     </span>
                   </td>
                   
-                  {/* Hidden Action Menu Column */}
+                  {/* Action Menu Column */}
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium relative">
-                    <div className="inline-block text-left" ref={menuRef}>
+                    <div className="inline-block text-left action-menu-container">
                       <button
-                        onClick={() => setActiveMenuId(activeMenuId === emp.id ? null : emp.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setActiveMenuId(activeMenuId === emp.id ? null : emp.id);
+                        }}
                         className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-md text-xs font-semibold flex items-center space-x-1 transition"
                       >
                         <span>Take Action</span>
