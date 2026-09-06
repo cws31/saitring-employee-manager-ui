@@ -8,7 +8,7 @@ export default function AdvancePage() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  
+
   const [editingId, setEditingId] = useState(null);
 
   const [formData, setFormData] = useState({
@@ -111,7 +111,17 @@ export default function AdvancePage() {
 
   const totalAdvances = advances.reduce((sum, item) => sum + item.amount, 0);
 
-  // Group advances date-wise per employee for register cross-verification
+  // Helper function to format currency with explicit + or - sign
+  const formatCurrency = (amt) => {
+    if (amt < 0) {
+      return `-₹${Math.abs(amt).toLocaleString()}`;
+    } else if (amt > 0) {
+      return `+₹${amt.toLocaleString()}`;
+    }
+    return `₹0`;
+  };
+
+  // Group advances date-wise per employee with custom carry-forward calculation rules
   const employeeSummaryMap = advances.reduce((acc, item) => {
     if (!item.employee) return acc;
     const empId = item.employee.id;
@@ -122,10 +132,32 @@ export default function AdvancePage() {
         transactions: []
       };
     }
-    acc[empId].totalAmount += item.amount;
     acc[empId].transactions.push(item);
     return acc;
   }, {});
+
+  // Apply custom total calculation per employee:
+  // - If last month balance is negative (due), add current month's advances to it (-4000 + 500 advance = -4500)
+  // - If last month balance is positive (credit), subtract current month's advances from it
+  Object.keys(employeeSummaryMap).forEach(empId => {
+    const summary = employeeSummaryMap[empId];
+    const carryForwardTx = summary.transactions.find(tx => 
+      tx.note && tx.note.toLowerCase().includes('carry-forward')
+    );
+    
+    const prevBalance = carryForwardTx ? carryForwardTx.amount : 0;
+    const currentMonthAdvances = summary.transactions
+      .filter(tx => !tx.note || !tx.note.toLowerCase().includes('carry-forward'))
+      .reduce((sum, tx) => sum + tx.amount, 0);
+
+    if (prevBalance < 0) {
+      summary.totalAmount = prevBalance - currentMonthAdvances;
+    } else if (prevBalance > 0) {
+      summary.totalAmount = prevBalance - currentMonthAdvances;
+    } else {
+      summary.totalAmount = currentMonthAdvances;
+    }
+  });
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -134,7 +166,7 @@ export default function AdvancePage() {
           <h1 className="text-2xl font-bold text-gray-900">Advance Payments / Hisab</h1>
           <p className="text-sm text-gray-500">Track mid-month cash or online advances given to employees.</p>
         </div>
-        
+
         <div className="flex items-center space-x-4 bg-white p-2 rounded-lg shadow border">
           <button onClick={handlePrevMonth} className="px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded font-bold">&larr;</button>
           <span className="text-lg font-semibold text-gray-800">{monthName}</span>
@@ -151,27 +183,48 @@ export default function AdvancePage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {employees.map(emp => {
             const summary = employeeSummaryMap[emp.id] || { totalAmount: 0, transactions: [] };
+            
+            const totalSummaryColor = summary.totalAmount < 0 
+              ? 'text-red-600' 
+              : summary.totalAmount > 0 
+                ? 'text-green-600' 
+                : 'text-blue-600';
+
             return (
               <div key={emp.id} className="border border-gray-200 rounded-lg p-4 bg-gray-50 flex flex-col justify-between">
                 <div>
                   <div className="flex justify-between items-center border-b border-gray-200 pb-2 mb-3">
                     <h3 className="font-bold text-gray-900">{emp.name}</h3>
-                    <span className="text-sm font-bold text-green-600">Total: ₹{summary.totalAmount.toLocaleString()}</span>
+                    <span className={`text-sm font-bold ${totalSummaryColor}`}>
+                      Total: {formatCurrency(summary.totalAmount)}
+                    </span>
                   </div>
 
                   {summary.transactions.length === 0 ? (
                     <p className="text-xs text-gray-400 italic py-2">No advances recorded this month.</p>
                   ) : (
                     <div className="space-y-2 mb-3">
-                      {summary.transactions.map(tx => (
-                        <div key={tx.id} className="bg-white p-2 rounded border border-gray-100 text-xs flex justify-between items-center shadow-sm">
-                          <div>
-                            <span className="font-semibold text-gray-700">{tx.paymentDate}</span>
-                            {tx.note && <p className="text-gray-500 italic truncate max-w-[150px]">{tx.note}</p>}
+                      {summary.transactions.map(tx => {
+                        const isCarryForward = tx.note && tx.note.toLowerCase().includes('carry-forward');
+                        const isDue = isCarryForward && tx.note.toLowerCase().includes('due');
+
+                        const isRed = (isDue || tx.amount < 0);
+                        const badgeColorClass = isRed 
+                          ? 'text-red-700 bg-red-50 border-red-200' 
+                          : 'text-green-700 bg-green-50 border-green-200';
+
+                        return (
+                          <div key={tx.id} className={`p-2 rounded border text-xs flex justify-between items-center shadow-sm ${badgeColorClass}`}>
+                            <div>
+                              <span className="font-semibold text-gray-700">{tx.paymentDate}</span>
+                              {tx.note && <p className="text-gray-500 italic truncate max-w-[150px]">{tx.note}</p>}
+                            </div>
+                            <span className={`font-bold ${isRed ? 'text-red-600' : 'text-green-700'}`}>
+                              {formatCurrency(tx.amount)}
+                            </span>
                           </div>
-                          <span className="font-bold text-green-700">₹{tx.amount}</span>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   )}
                 </div>
@@ -265,8 +318,8 @@ export default function AdvancePage() {
         <div className="lg:col-span-2 bg-white shadow rounded-lg border border-gray-200 p-6">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-bold text-gray-800">Transaction History</h2>
-            <div className="bg-blue-50 text-blue-800 px-4 py-2 rounded-md text-sm font-semibold">
-              Total Advanced: ₹{totalAdvances.toLocaleString()}
+            <div className="bg-blue-50 text-blue-800 border border-blue-200 px-4 py-2 rounded-md text-sm font-semibold">
+              Total Advanced: <span className="text-blue-700 font-bold">{formatCurrency(totalAdvances)}</span>
             </div>
           </div>
 
@@ -289,28 +342,37 @@ export default function AdvancePage() {
                     </td>
                   </tr>
                 ) : (
-                  advances.map(item => (
-                    <tr key={item.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 whitespace-nowrap text-gray-600">{item.paymentDate}</td>
-                      <td className="px-4 py-3 whitespace-nowrap font-medium text-gray-900">{item.employee ? item.employee.name : 'Unknown'}</td>
-                      <td className="px-4 py-3 whitespace-nowrap font-bold text-green-600">₹{item.amount}</td>
-                      <td className="px-4 py-3 text-gray-500">{item.note || '-'}</td>
-                      <td className="px-4 py-3 whitespace-nowrap text-right space-x-2">
-                        <button
-                          onClick={() => handleEditClick(item)}
-                          className="text-blue-600 hover:text-blue-800 text-xs font-semibold"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleDelete(item.id)}
-                          className="text-red-600 hover:text-red-800 text-xs font-semibold"
-                        >
-                          Delete
-                        </button>
-                      </td>
-                    </tr>
-                  ))
+                  advances.map(item => {
+                    const isCarryForward = item.note && item.note.toLowerCase().includes('carry-forward');
+                    const isDue = isCarryForward && item.note.toLowerCase().includes('due');
+
+                    const isRed = (isDue || item.amount < 0);
+
+                    return (
+                      <tr key={item.id} className="hover:bg-gray-50">
+                        <td className="px-4 py-3 whitespace-nowrap text-gray-600">{item.paymentDate}</td>
+                        <td className="px-4 py-3 whitespace-nowrap font-medium text-gray-900">{item.employee ? item.employee.name : 'Unknown'}</td>
+                        <td className={`px-4 py-3 whitespace-nowrap font-bold ${isRed ? 'text-red-600' : 'text-green-600'}`}>
+                          {formatCurrency(item.amount)}
+                        </td>
+                        <td className="px-4 py-3 text-gray-500">{item.note || '-'}</td>
+                        <td className="px-4 py-3 whitespace-nowrap text-right space-x-2">
+                          <button
+                            onClick={() => handleEditClick(item)}
+                            className="text-blue-600 hover:text-blue-800 text-xs font-semibold"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleDelete(item.id)}
+                            className="text-red-600 hover:text-red-800 text-xs font-semibold"
+                          >
+                            Delete
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })
                 )}
               </tbody>
             </table>
