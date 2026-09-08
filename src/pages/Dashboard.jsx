@@ -10,7 +10,7 @@ export default function Dashboard() {
         <p className="mt-1 text-sm text-gray-500">Overview of business modules and quick actions.</p>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {/* Employee Module Card */}
         <div className="bg-white overflow-hidden shadow rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
           <div className="p-5">

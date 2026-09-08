@@ -1,6 +1,6 @@
-import axiosInstance from '../api/axiosInstance';
+import axiosInstance from './axiosInstance';
 
-const EMPLOYEE_API_URL = '/employees';
+const EMPLOYEE_API_URL = '/api/employees';
 
 class EmployeeService {
     getAllEmployees() {

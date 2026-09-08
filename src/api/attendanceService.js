@@ -1,6 +1,6 @@
 import axiosInstance from './axiosInstance';
 
-const ATTENDANCE_API_URL = '/attendance';
+const ATTENDANCE_API_URL = '/api/attendance';
 
 class AttendanceService {
     markAttendance(data) {

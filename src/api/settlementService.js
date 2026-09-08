@@ -1,6 +1,6 @@
 import axiosInstance from './axiosInstance';
 
-const API_URL = '/settlements';
+const API_URL = '/api/settlements';
 
 export const settlementService = {
     getAllSettlements: async () => {
