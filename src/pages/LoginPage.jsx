@@ -15,14 +15,11 @@ const LoginPage = () => {
     e.preventDefault();
     setError('');
     setLoading(true);
-    console.log("Frontend: Submitting login for username:", username);
 
     try {
-      const response = await authService.login({ username, password });
-      console.log("Frontend: Login response received successfully:", response);
+      await authService.login({ username, password });
       setStep(2); 
     } catch (err) {
-      console.error("Frontend: Login request failed:", err);
       const errorMsg = err.response?.data || err.message || 'Network error or backend unreachable.';
       setError(typeof errorMsg === 'object' ? JSON.stringify(errorMsg) : errorMsg);
     } finally {
@@ -34,16 +31,12 @@ const LoginPage = () => {
     e.preventDefault();
     setError('');
     setLoading(true);
-    console.log("Frontend: Submitting OTP verification...");
 
     try {
       const token = await authService.verifyOtp({ username, otp });
-      console.log("Frontend: OTP verified successfully. Token received.");
-      // FIXED: Changed from 'jwt_token' to 'token' to match axiosInstance.js
       localStorage.setItem('token', token); 
       navigate('/'); 
     } catch (err) {
-      console.error("Frontend: OTP verification failed:", err);
       const errorMsg = err.response?.data || err.message || 'Invalid or expired OTP.';
       setError(typeof errorMsg === 'object' ? JSON.stringify(errorMsg) : errorMsg);
     } finally {
@@ -52,59 +45,72 @@ const LoginPage = () => {
   };
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: '#f4f6f8' }}>
-      <div style={{ background: 'white', padding: '40px', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', width: '350px' }}>
-        <h2 style={{ marginBottom: '20px', textAlign: 'center' }}>Admin Login</h2>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full bg-white p-8 rounded-lg shadow-sm border border-gray-100">
+        
+        {/* Business branding title */}
+        <div className="text-center mb-6">
+          <h1 className="text-lg font-medium text-blue-900 tracking-wide">Sonu Saitring</h1>
+          <p className="text-xs text-gray-400 mt-1">Admin Management Portal</p>
+        </div>
         
         {error && (
-          <div style={{ background: '#ffe6e6', color: '#d9534f', padding: '10px', borderRadius: '4px', fontSize: '13px', marginBottom: '15px', wordBreak: 'break-all' }}>
-            <strong>Error:</strong> {error}
+          <div className="bg-red-50 text-red-600 p-3 rounded text-xs mb-4 break-all border border-red-100">
+            <span className="font-medium">Error:</span> {error}
           </div>
         )}
 
         {step === 1 ? (
-          <form onSubmit={handleLoginSubmit}>
-            <div style={{ marginBottom: '15px' }}>
-              <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px' }}>Username</label>
+          <form onSubmit={handleLoginSubmit} className="space-y-4">
+            <div>
+              <label className="block text-xs font-normal text-gray-600 mb-1">Username</label>
               <input 
                 type="text" 
                 value={username} 
                 onChange={(e) => setUsername(e.target.value)} 
                 required 
-                style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }}
+                className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-blue-600 transition-colors"
               />
             </div>
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px' }}>Password</label>
+            <div>
+              <label className="block text-xs font-normal text-gray-600 mb-1">Password</label>
               <input 
                 type="password" 
                 value={password} 
                 onChange={(e) => setPassword(e.target.value)} 
                 required 
-                style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }}
+                className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-blue-600 transition-colors"
               />
             </div>
-            <button type="submit" disabled={loading} style={{ width: '100%', padding: '10px', background: '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+            <button 
+              type="submit" 
+              disabled={loading} 
+              className="w-full mt-2 py-2.5 px-4 bg-blue-700 hover:bg-blue-800 text-white text-sm font-normal rounded transition-colors disabled:opacity-50 cursor-pointer"
+            >
               {loading ? 'Sending OTP...' : 'Login & Send OTP'}
             </button>
           </form>
         ) : (
-          <form onSubmit={handleOtpSubmit}>
-            <p style={{ fontSize: '13px', color: '#666', marginBottom: '15px', textAlign: 'center' }}>
+          <form onSubmit={handleOtpSubmit} className="space-y-4">
+            <p className="text-xs text-gray-500 mb-4 text-center leading-relaxed">
               A verification code has been sent to your registered admin email.
             </p>
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px' }}>Enter 6-digit OTP</label>
+            <div>
+              <label className="block text-xs font-normal text-gray-600 mb-1 text-center">Enter 6-digit OTP</label>
               <input 
                 type="text" 
                 maxLength="6"
                 value={otp} 
                 onChange={(e) => setOtp(e.target.value)} 
                 required 
-                style={{ width: '100%', padding: '8px', boxSizing: 'border-box', textAlign: 'center', letterSpacing: '4px', fontSize: '18px' }}
+                className="w-full px-3 py-2 border border-gray-300 rounded text-center tracking-[0.3em] text-lg focus:outline-none focus:border-blue-600 transition-colors"
               />
             </div>
-            <button type="submit" disabled={loading} style={{ width: '100%', padding: '10px', background: '#28a745', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+            <button 
+              type="submit" 
+              disabled={loading} 
+              className="w-full mt-2 py-2.5 px-4 bg-green-600 hover:bg-green-700 text-white text-sm font-normal rounded transition-colors disabled:opacity-50 cursor-pointer"
+            >
               {loading ? 'Verifying...' : 'Verify OTP & Enter'}
             </button>
           </form>

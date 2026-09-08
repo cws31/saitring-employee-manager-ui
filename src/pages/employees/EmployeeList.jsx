@@ -14,7 +14,6 @@ export default function EmployeeList() {
   useEffect(() => {
     fetchEmployees();
 
-    // Close dropdown globally when clicking anywhere else on the screen
     const handleGlobalClick = (event) => {
       if (!event.target.closest('.action-menu-container')) {
         setActiveMenuId(null);
@@ -76,96 +75,96 @@ export default function EmployeeList() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex justify-between items-center mb-6">
+      {/* Header section with brand context */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Employee Management</h1>
-          <p className="text-sm text-gray-500">Manage rates, contact information, and account status securely.</p>
+          <h1 className="text-xl font-medium text-gray-800 tracking-wide">Sonu Saitring — Employees</h1>
+          <p className="text-xs text-gray-500 mt-0.5">Manage rates, contact details, and account status.</p>
         </div>
         <button
           onClick={() => { setEditData(null); setIsModalOpen(true); }}
-          className="bg-blue-600 text-white px-4 py-2 rounded-md shadow text-sm font-medium hover:bg-blue-700 transition"
+          className="bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 rounded text-xs font-normal transition-colors cursor-pointer shadow-sm"
         >
           + Add Employee
         </button>
       </div>
 
-      {error && <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">{error}</div>}
-      {success && <div className="mb-4 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md text-sm">{success}</div>}
+      {error && <div className="mb-4 bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded text-xs">{error}</div>}
+      {success && <div className="mb-4 bg-green-50 border border-green-100 text-green-700 px-4 py-3 rounded text-xs">{success}</div>}
 
-      <div className="bg-white shadow overflow-visible sm:rounded-lg border border-gray-200">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+      {/* Responsive Table Wrapper */}
+      <div className="bg-white shadow-sm overflow-x-auto sm:rounded-lg border border-gray-100">
+        <table className="min-w-full divide-y divide-gray-100">
+          <thead className="bg-gray-50/50">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mobile</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Initial Rate (₹)</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              <th className="px-6 py-3 text-left text-[11px] font-medium text-gray-500 uppercase tracking-wider">ID</th>
+              <th className="px-6 py-3 text-left text-[11px] font-medium text-gray-500 uppercase tracking-wider">Name</th>
+              <th className="px-6 py-3 text-left text-[11px] font-medium text-gray-500 uppercase tracking-wider">Mobile</th>
+              <th className="px-6 py-3 text-left text-[11px] font-medium text-gray-500 uppercase tracking-wider">Initial Rate (₹)</th>
+              <th className="px-6 py-3 text-left text-[11px] font-medium text-gray-500 uppercase tracking-wider">Status</th>
+              <th className="px-6 py-3 text-right text-[11px] font-medium text-gray-500 uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-white divide-y divide-gray-100 text-xs">
             {employees.length === 0 ? (
               <tr>
-                <td colSpan="6" className="px-6 py-8 text-center text-sm text-gray-400">
+                <td colSpan="6" className="px-6 py-8 text-center text-gray-400">
                   No records found. Click "Add Employee" to create one.
                 </td>
               </tr>
             ) : (
               employees.map((emp) => (
-                <tr key={emp.id} className={emp.blocked ? 'bg-gray-50 text-gray-400' : ''}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{emp.id}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">{emp.name}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">{emp.mobile}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">₹{emp.initialRate}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${emp.blocked ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
+                <tr key={emp.id} className={emp.blocked ? 'bg-gray-50/70 text-gray-400' : 'text-gray-700'}>
+                  <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">{emp.id}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">{emp.name}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">{emp.mobile}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">₹{emp.initialRate}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`px-2 py-0.5 inline-flex text-[10px] font-normal rounded-full ${emp.blocked ? 'bg-red-50 text-red-600 border border-red-100' : 'bg-green-50 text-green-700 border border-green-100'}`}>
                       {emp.blocked ? 'Blocked' : 'Active'}
                     </span>
                   </td>
                   
                   {/* Action Menu Column */}
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium relative">
+                  <td className="px-6 py-4 whitespace-nowrap text-right font-medium relative">
                     <div className="inline-block text-left action-menu-container">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           setActiveMenuId(activeMenuId === emp.id ? null : emp.id);
                         }}
-                        className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-md text-xs font-semibold flex items-center space-x-1 transition"
+                        className="bg-gray-50 hover:bg-gray-100 text-gray-600 border border-gray-200 px-2.5 py-1 rounded text-[11px] font-normal inline-flex items-center space-x-1 transition-colors cursor-pointer"
                       >
                         <span>Take Action</span>
-                        <svg className="w-3.5 h-3.5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-3 h-3 ml-0.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
                         </svg>
                       </button>
 
                       {/* Dropdown Options Popup */}
                       {activeMenuId === emp.id && (
-                        <div className="origin-top-right absolute right-0 mt-2 w-36 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-20 focus:outline-none">
-                          <div className="py-1" role="menu">
-                            <button
-                              onClick={() => { setActiveMenuId(null); setEditData(emp); setIsModalOpen(true); }}
-                              className="w-full text-left px-4 py-2 text-xs text-indigo-700 hover:bg-indigo-50 flex items-center"
-                              role="menuitem"
-                            >
-                              ✏️ Edit Details
-                            </button>
-                            <button
-                              onClick={() => handleToggleBlock(emp.id)}
-                              className={`w-full text-left px-4 py-2 text-xs flex items-center ${emp.blocked ? 'text-green-700 hover:bg-green-50' : 'text-amber-700 hover:bg-amber-50'}`}
-                              role="menuitem"
-                            >
-                              {emp.blocked ? '🔓 Unblock' : '🔒 Block'}
-                            </button>
-                            <button
-                              onClick={() => handleDelete(emp.id)}
-                              className="w-full text-left px-4 py-2 text-xs text-red-700 hover:bg-red-50 flex items-center"
-                              role="menuitem"
-                            >
-                              🗑️ Delete
-                            </button>
-                          </div>
+                        <div className="origin-top-right absolute right-0 mt-1 w-36 rounded shadow-sm bg-white border border-gray-100 ring-1 ring-black/5 z-20 focus:outline-none py-1">
+                          <button
+                            onClick={() => { setActiveMenuId(null); setEditData(emp); setIsModalOpen(true); }}
+                            className="w-full text-left px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50 flex items-center transition-colors"
+                            role="menuitem"
+                          >
+                            ✏️ Edit Details
+                          </button>
+                          <button
+                            onClick={() => handleToggleBlock(emp.id)}
+                            className={`w-full text-left px-3 py-1.5 text-xs flex items-center transition-colors ${emp.blocked ? 'text-green-700 hover:bg-green-50' : 'text-amber-700 hover:bg-amber-50'}`}
+                            role="menuitem"
+                          >
+                            {emp.blocked ? '🔓 Unblock' : '🔒 Block'}
+                          </button>
+                          <button
+                            onClick={() => handleDelete(emp.id)}
+                            className="w-full text-left px-3 py-1.5 text-xs text-red-600 hover:bg-red-50 flex items-center transition-colors"
+                            role="menuitem"
+                          >
+                            🗑️ Delete
+                          </button>
                         </div>
                       )}
                     </div>

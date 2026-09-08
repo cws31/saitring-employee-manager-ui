@@ -103,39 +103,35 @@ const MonthClosingPage = () => {
     };
 
     const handleToggleHisabComplete = async (detailId, currentStatus) => {
-    try {
-        const newStatus = !currentStatus;
+        try {
+            const newStatus = !currentStatus;
 
-        await monthClosingService.toggleHisabComplete(
-            detailId,
-            newStatus
-        );
+            await monthClosingService.toggleHisabComplete(
+                detailId,
+                newStatus
+            );
 
-        setSelectedClosing(prev => {
-            if (!prev) return prev;
+            setSelectedClosing(prev => {
+                if (!prev) return prev;
 
-            return {
-                ...prev,
-                details: prev.details.map(row =>
-                    row.id === detailId
-                        ? {
-                            ...row,
-                            hisabCompleted: newStatus
-                        }
-                        : row
-                )
-            };
-        });
+                return {
+                    ...prev,
+                    details: prev.details.map(row =>
+                        row.id === detailId
+                            ? {
+                                ...row,
+                                hisabCompleted: newStatus
+                            }
+                            : row
+                    )
+                };
+            });
 
-    } catch (err) {
-        console.error(
-            "Failed to update Hisab completion status",
-            err
-        );
-
-        alert("Failed to update Hisab completion status.");
-    }
-};
+        } catch (err) {
+            console.error("Failed to update Hisab completion status", err);
+            alert("Failed to update Hisab completion status.");
+        }
+    };
 
     const handleOpenEditSettlement = (item) => {
         setSettlementForm({
@@ -180,26 +176,32 @@ const MonthClosingPage = () => {
     };
 
     return (
-        <div style={{ padding: '20px', maxWidth: '1350px', margin: '0 auto' }}>
-            <h2>Month Closing & Hisab Reports</h2>
+        <div style={{ padding: '24px', maxWidth: '1400px', margin: '0 auto', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', color: '#1e293b' }}>
+            
+            {/* Page Header */}
+            <div style={{ marginBottom: '24px' }}>
+                <h2 style={{ margin: '0 0 6px 0', fontSize: '24px', fontWeight: '700', letterSpacing: '-0.025em' }}>Month Closing & Hisab Management</h2>
+                <p style={{ margin: 0, fontSize: '14px', color: '#64748b' }}>Track employee attendance, earnings, balances, and process quick payments.</p>
+            </div>
 
-            <div style={{ background: '#f9f9f9', padding: '15px 20px', borderRadius: '8px', marginBottom: '25px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', display: 'flex', gap: '20px', alignItems: 'center' }}>
-                <div>
-                    <label style={{ marginRight: '8px', fontWeight: 'bold' }}>Year: </label>
+            {/* Filter Controls Bar */}
+            <div style={{ background: '#ffffff', padding: '16px 20px', borderRadius: '12px', marginBottom: '24px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', display: 'flex', flexWrap: 'wrap', gap: '20px', alignItems: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <label style={{ fontSize: '13px', fontWeight: '600', color: '#475569' }}>Year</label>
                     <input 
                         type="number" 
                         value={year} 
                         onChange={(e) => setYear(e.target.value)} 
-                        style={{ padding: '6px', width: '100px' }}
+                        style={{ padding: '8px 12px', width: '100px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '14px', outline: 'none' }}
                         required 
                     />
                 </div>
-                <div>
-                    <label style={{ marginRight: '8px', fontWeight: 'bold' }}>Month: </label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <label style={{ fontSize: '13px', fontWeight: '600', color: '#475569' }}>Month</label>
                     <select 
                         value={month} 
                         onChange={(e) => setMonth(parseInt(e.target.value))}
-                        style={{ padding: '6px', width: '150px' }}
+                        style={{ padding: '8px 12px', width: '170px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '14px', outline: 'none', background: '#fff' }}
                     >
                         {Array.from({ length: 12 }, (_, i) => (
                             <option key={i + 1} value={i + 1}>
@@ -208,140 +210,146 @@ const MonthClosingPage = () => {
                         ))}
                     </select>
                 </div>
-                {loading && <span style={{ color: '#007bff', fontWeight: 'bold' }}>Loading report...</span>}
+                {loading && <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#0284c7', fontSize: '14px', fontWeight: '600' }}>Loading report...</div>}
             </div>
 
-            {error && <div style={{ color: 'red', marginBottom: '15px' }}>{error}</div>}
+            {error && <div style={{ padding: '12px 16px', background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', borderRadius: '8px', marginBottom: '20px', fontSize: '14px' }}>{error}</div>}
 
+            {/* Main Report Card */}
             {selectedClosing && (
-                <div style={{ background: '#fff', padding: '20px', borderRadius: '8px', border: '1px solid #ccc', marginBottom: '30px' }}>
-                    <h3 style={{ margin: '0 0 15px 0' }}>📊 Report Details for {selectedClosing.month}/{selectedClosing.year}</h3>
+                <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', marginBottom: '30px', overflow: 'hidden' }}>
+                    <div style={{ padding: '18px 24px', borderBottom: '1px solid #e2e8f0', background: '#f8fafc' }}>
+                        <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '600', color: '#0f172a' }}>
+                            Report Overview — {new Date(0, selectedClosing.month - 1).toLocaleString('default', { month: 'long' })} {selectedClosing.year}
+                        </h3>
+                    </div>
 
-                    <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px' }}>
-                        <thead>
-                            <tr style={{ background: '#f1f1f1', textAlign: 'left' }}>
-                                <th style={{ padding: '8px', border: '1px solid #ddd' }}>Employee</th>
-                                <th style={{ padding: '8px', border: '1px solid #ddd' }}>Present Days</th>
-                                <th style={{ padding: '8px', border: '1px solid #ddd' }}>Total Earning</th>
-                                <th style={{ padding: '8px', border: '1px solid #ddd' }}>Advance</th>
-                                <th style={{ padding: '8px', border: '1px solid #ddd', color: '#333' }}>Remaining Balance</th>
-                                <th style={{ padding: '8px', border: '1px solid #ddd', background: '#e8f4fd', textAlign: 'center' }}>Hisab Done</th>
-                                <th style={{ padding: '8px', border: '1px solid #ddd', background: '#e2f0cb', textAlign: 'center' }}>Amount Paid (History)</th>
-                                <th style={{ padding: '8px', border: '1px solid #ddd', background: '#e6ffed', textAlign: 'center' }}>Quick Pay</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {selectedClosing.details.map((d, index) => {
-                                const empId = d.employee?.id || d.employeeId;
-                                const empSettlements = d.settlements || [];
-                                const balance = d.remainingBalance !== undefined ? d.remainingBalance : 0;
-                                
-                                const balanceColor = balance < 0 ? '#dc3545' : balance > 0 ? '#28a745' : '#007bff';
+                    <div style={{ overflowX: 'auto' }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '14px' }}>
+                            <thead>
+                                <tr style={{ background: '#f1f5f9', color: '#475569', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                    <th style={{ padding: '12px 16px', fontWeight: '600', borderBottom: '1px solid #e2e8f0' }}>Employee</th>
+                                    <th style={{ padding: '12px 16px', fontWeight: '600', borderBottom: '1px solid #e2e8f0' }}>Present Days</th>
+                                    <th style={{ padding: '12px 16px', fontWeight: '600', borderBottom: '1px solid #e2e8f0' }}>Total Earning</th>
+                                    <th style={{ padding: '12px 16px', fontWeight: '600', borderBottom: '1px solid #e2e8f0' }}>Advance</th>
+                                    <th style={{ padding: '12px 16px', fontWeight: '600', borderBottom: '1px solid #e2e8f0' }}>Remaining Balance</th>
+                                    <th style={{ padding: '12px 16px', fontWeight: '600', borderBottom: '1px solid #e2e8f0', textAlign: 'center' }}>Hisab Status</th>
+                                    <th style={{ padding: '12px 16px', fontWeight: '600', borderBottom: '1px solid #e2e8f0', textAlign: 'center' }}>Paid History</th>
+                                    <th style={{ padding: '12px 16px', fontWeight: '600', borderBottom: '1px solid #e2e8f0', textAlign: 'center' }}>Quick Pay</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {selectedClosing.details.map((d, index) => {
+                                    const empId = d.employee?.id || d.employeeId;
+                                    const empSettlements = d.settlements || [];
+                                    const balance = d.remainingBalance !== undefined ? d.remainingBalance : 0;
+                                    
+                                    const balanceColor = balance < 0 ? '#dc2626' : balance > 0 ? '#16a34a' : '#2563eb';
 
-                                const prevBalance = d.previousBalance ?? d.openingBalance ?? d.lastMonthBalance ?? 0;
-                                const advanceVal = d.totalAdvance ?? 0;
-                                const earningVal = d.totalEarning ?? 0;
+                                    const prevBalance = d.previousBalance ?? d.openingBalance ?? d.lastMonthBalance ?? 0;
+                                    const advanceVal = d.totalAdvance ?? 0;
+                                    const earningVal = d.totalEarning ?? 0;
 
-                                return (
-                                    <tr key={d.id || index}>
-                                        <td style={{ padding: '8px', border: '1px solid #ddd' }}>{d.employeeName}</td>
-                                        <td style={{ padding: '8px', border: '1px solid #ddd' }}>{d.totalPresences}</td>
-                                        <td style={{ padding: '8px', border: '1px solid #ddd' }}>{earningVal}</td>
-                                        <td style={{ padding: '8px', border: '1px solid #ddd' }}>{advanceVal}</td>
-                                        <td style={{ padding: '8px', border: '1px solid #ddd', fontWeight: 'bold', color: balanceColor }}>
-                                            <div>{balance}</div>
-                                            <div style={{ fontSize: '11px', fontWeight: 'normal', color: '#555', marginTop: '2px' }}>
-                                                (last month balance({prevBalance}) + month advance({advanceVal}) - months earning({earningVal}))
-                                            </div>
-                                        </td>
-                                        <td style={{ padding: '8px', border: '1px solid #ddd', background: '#f0f7ff', textAlign: 'center' }}>
-                                            <label style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                                                <input 
-                                                    type="checkbox"
-                                                    checked={!!d.hisabCompleted}
-                                                    onChange={() => handleToggleHisabComplete(d.id, d.hisabCompleted)}
-                                                    style={{ width: '16px', height: '16px', cursor: 'pointer' }}
-                                                />
-                                                <span style={{ fontSize: '13px', fontWeight: 'bold', color: d.hisabCompleted ? '#28a745' : '#6c757d' }}>
-                                                    {d.hisabCompleted ? 'Completed' : 'Pending'}
-                                                </span>
-                                            </label>
-                                        </td>
-                                        
-                                        <td style={{ padding: '8px', border: '1px solid #ddd', background: '#f4f9ec', textAlign: 'center' }}>
-                                            <div style={{ fontWeight: 'bold', color: '#333', marginBottom: '3px' }}>
-                                                ₹{d.amountPaid || 0}
-                                            </div>
-                                            {empSettlements.length > 0 ? (
-                                                <button 
-                                                    type="button" 
-                                                    onClick={() => setActiveHistoryEmployee(d)}
-                                                    style={{ background: 'none', border: 'none', color: '#007bff', textDecoration: 'underline', cursor: 'pointer', fontSize: '12px', padding: 0 }}
-                                                >
-                                                    View History ({empSettlements.length})
-                                                </button>
-                                            ) : (
-                                                <span style={{ color: '#888', fontSize: '11px', fontStyle: 'italic' }}>No history</span>
-                                            )}
-                                        </td>
-
-                                        <td style={{ padding: '8px', border: '1px solid #ddd', background: '#f0fff4', textAlign: 'center' }}>
-                                            <div style={{ display: 'flex', gap: '5px', justifyContent: 'center', alignItems: 'center' }}>
-                                                <input 
-                                                    type="number"
-                                                    step="0.01"
-                                                    placeholder="Amount"
-                                                    value={rowPaymentInputs[empId] !== undefined ? rowPaymentInputs[empId] : ''}
-                                                    onChange={(e) => handleRowPaymentInputChange(empId, e.target.value)}
-                                                    style={{ width: '75px', padding: '4px' }}
-                                                />
-                                                <button 
-                                                    type="button"
-                                                    onClick={() => handleDirectRowPayment(d)}
-                                                    style={{ padding: '4px 8px', background: '#28a745', color: '#fff', border: 'none', borderRadius: '3px', cursor: 'pointer', fontWeight: 'bold' }}
-                                                >
-                                                    Pay
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                );
-                            })}
-                        </tbody>
-                    </table>
+                                    return (
+                                        <tr key={d.id || index} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                                            <td style={{ padding: '14px 16px', fontWeight: '600', color: '#0f172a' }}>{d.employeeName}</td>
+                                            <td style={{ padding: '14px 16px', color: '#334155' }}>{d.totalPresences}</td>
+                                            <td style={{ padding: '14px 16px', color: '#334155' }}>₹{earningVal}</td>
+                                            <td style={{ padding: '14px 16px', color: '#334155' }}>₹{advanceVal}</td>
+                                            <td style={{ padding: '14px 16px' }}>
+                                                <div style={{ fontWeight: '700', color: balanceColor, fontSize: '15px' }}>₹{balance}</div>
+                                                <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px', lineHeight: '1.4' }}>
+                                                    (Prev: ₹{prevBalance} + Adv: ₹{advanceVal} - Earn: ₹{earningVal})
+                                                </div>
+                                            </td>
+                                            <td style={{ padding: '14px 16px', textAlign: 'center' }}>
+                                                <label style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px', background: d.hisabCompleted ? '#f0fdf4' : '#f8fafc', padding: '6px 10px', borderRadius: '6px', border: `1px solid ${d.hisabCompleted ? '#bbf7d0' : '#e2e8f0'}` }}>
+                                                    <input 
+                                                        type="checkbox"
+                                                        checked={!!d.hisabCompleted}
+                                                        onChange={() => handleToggleHisabComplete(d.id, d.hisabCompleted)}
+                                                        style={{ width: '15px', height: '15px', cursor: 'pointer', accentColor: '#16a34a' }}
+                                                    />
+                                                    <span style={{ fontSize: '12px', fontWeight: '600', color: d.hisabCompleted ? '#16a34a' : '#64748b' }}>
+                                                        {d.hisabCompleted ? 'Completed' : 'Pending'}
+                                                    </span>
+                                                </label>
+                                            </td>
+                                            <td style={{ padding: '14px 16px', textAlign: 'center' }}>
+                                                <div style={{ fontWeight: '600', color: '#0f172a', marginBottom: '2px' }}>
+                                                    ₹{d.amountPaid || 0}
+                                                </div>
+                                                {empSettlements.length > 0 ? (
+                                                    <button 
+                                                        type="button" 
+                                                        onClick={() => setActiveHistoryEmployee(d)}
+                                                        style={{ background: 'none', border: 'none', color: '#0284c7', textDecoration: 'underline', cursor: 'pointer', fontSize: '12px', padding: 0, fontWeight: '500' }}
+                                                    >
+                                                        View History ({empSettlements.length})
+                                                    </button>
+                                                ) : (
+                                                    <span style={{ color: '#94a3b8', fontSize: '11px', fontStyle: 'italic' }}>No records</span>
+                                                )}
+                                            </td>
+                                            <td style={{ padding: '14px 16px', textAlign: 'center' }}>
+                                                <div style={{ display: 'flex', gap: '6px', justifyContent: 'center', alignItems: 'center' }}>
+                                                    <input 
+                                                        type="number"
+                                                        step="0.01"
+                                                        placeholder="Amt"
+                                                        value={rowPaymentInputs[empId] !== undefined ? rowPaymentInputs[empId] : ''}
+                                                        onChange={(e) => handleRowPaymentInputChange(empId, e.target.value)}
+                                                        style={{ width: '70px', padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', outline: 'none' }}
+                                                    />
+                                                    <button 
+                                                        type="button"
+                                                        onClick={() => handleDirectRowPayment(d)}
+                                                        style={{ padding: '6px 12px', background: '#16a34a', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', fontSize: '13px' }}
+                                                    >
+                                                        Pay
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             )}
 
+            {/* View History Modal */}
             {activeHistoryEmployee && (
-                <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 999 }}>
-                    <div style={{ background: '#fff', padding: '20px', borderRadius: '8px', width: '500px', maxHeight: '80vh', overflowY: 'auto', boxShadow: '0 4px 12px rgba(0,0,0,0.2)' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #eee', paddingBottom: '10px', marginBottom: '15px' }}>
-                            <h3 style={{ margin: 0 }}>Payment History: {activeHistoryEmployee.employeeName}</h3>
-                            <button type="button" onClick={() => setActiveHistoryEmployee(null)} style={{ background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer', fontWeight: 'bold' }}>&times;</button>
+                <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(15, 23, 42, 0.6)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 999, padding: '16px' }}>
+                    <div style={{ background: '#fff', padding: '24px', borderRadius: '12px', width: '100%', maxWidth: '500px', maxHeight: '85vh', overflowY: 'auto', boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px', marginBottom: '16px' }}>
+                            <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '600', color: '#0f172a' }}>History: {activeHistoryEmployee.employeeName}</h3>
+                            <button type="button" onClick={() => setActiveHistoryEmployee(null)} style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#64748b', fontWeight: 'bold' }}>&times;</button>
                         </div>
                         
                         {(!activeHistoryEmployee.settlements || activeHistoryEmployee.settlements.length === 0) ? (
-                            <p style={{ color: '#666', fontStyle: 'italic' }}>No payment history records found for this month.</p>
+                            <p style={{ color: '#64748b', fontStyle: 'italic', fontSize: '14px', textAlign: 'center', padding: '20px 0' }}>No payment history records found for this month.</p>
                         ) : (
-                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', marginBottom: '20px' }}>
                                 <thead>
-                                    <tr style={{ background: '#f1f1f1', textAlign: 'left' }}>
-                                        <th style={{ padding: '6px', border: '1px solid #ddd' }}>Date</th>
-                                        <th style={{ padding: '6px', border: '1px solid #ddd' }}>Amount</th>
-                                        <th style={{ padding: '6px', border: '1px solid #ddd' }}>Note</th>
-                                        <th style={{ padding: '6px', border: '1px solid #ddd', textAlign: 'center' }}>Actions</th>
+                                    <tr style={{ background: '#f8fafc', color: '#475569', textAlign: 'left' }}>
+                                        <th style={{ padding: '8px 10px', borderBottom: '1px solid #e2e8f0', fontWeight: '600' }}>Date</th>
+                                        <th style={{ padding: '8px 10px', borderBottom: '1px solid #e2e8f0', fontWeight: '600' }}>Amount</th>
+                                        <th style={{ padding: '8px 10px', borderBottom: '1px solid #e2e8f0', fontWeight: '600' }}>Note</th>
+                                        <th style={{ padding: '8px 10px', borderBottom: '1px solid #e2e8f0', fontWeight: '600', textAlign: 'center' }}>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {activeHistoryEmployee.settlements.map(s => (
-                                        <tr key={s.id}>
-                                            <td style={{ padding: '6px', border: '1px solid #ddd' }}>{s.settlementDate}</td>
-                                            <td style={{ padding: '6px', border: '1px solid #ddd', fontWeight: 'bold', color: '#28a745' }}>₹{s.amountPaid}</td>
-                                            <td style={{ padding: '6px', border: '1px solid #ddd', color: '#555' }}>{s.note || '-'}</td>
-                                            <td style={{ padding: '6px', border: '1px solid #ddd', textAlign: 'center' }}>
-                                                <div style={{ display: 'flex', gap: '5px', justifyContent: 'center' }}>
-                                                    <button type="button" onClick={() => handleOpenEditSettlement(s)} style={{ padding: '2px 6px', background: '#ffc107', border: 'none', borderRadius: '3px', cursor: 'pointer', fontSize: '11px' }}>Edit</button>
-                                                    <button type="button" onClick={() => handleDeleteSettlement(s.id)} style={{ padding: '2px 6px', background: '#dc3545', color: '#fff', border: 'none', borderRadius: '3px', cursor: 'pointer', fontSize: '11px' }}>Delete</button>
+                                        <tr key={s.id} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                                            <td style={{ padding: '10px', color: '#334155' }}>{s.settlementDate}</td>
+                                            <td style={{ padding: '10px', fontWeight: '600', color: '#16a34a' }}>₹{s.amountPaid}</td>
+                                            <td style={{ padding: '10px', color: '#64748b' }}>{s.note || '-'}</td>
+                                            <td style={{ padding: '10px', textAlign: 'center' }}>
+                                                <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
+                                                    <button type="button" onClick={() => handleOpenEditSettlement(s)} style={{ padding: '4px 8px', background: '#eab308', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: '500' }}>Edit</button>
+                                                    <button type="button" onClick={() => handleDeleteSettlement(s.id)} style={{ padding: '4px 8px', background: '#dc2626', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: '500' }}>Delete</button>
                                                 </div>
                                             </td>
                                         </tr>
@@ -350,51 +358,52 @@ const MonthClosingPage = () => {
                             </table>
                         )}
 
-                        <div style={{ textAlign: 'right', marginTop: '20px' }}>
-                            <button type="button" onClick={() => setActiveHistoryEmployee(null)} style={{ padding: '6px 14px', background: '#6c757d', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Close</button>
+                        <div style={{ textAlign: 'right' }}>
+                            <button type="button" onClick={() => setActiveHistoryEmployee(null)} style={{ padding: '8px 16px', background: '#64748b', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', fontWeight: '600' }}>Close</button>
                         </div>
                     </div>
                 </div>
             )}
 
+            {/* Edit Settlement Modal */}
             {showSettlementModal && (
-                <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
-                    <div style={{ background: '#fff', padding: '25px', borderRadius: '8px', width: '400px', boxShadow: '0 4px 8px rgba(0,0,0,0.2)' }}>
-                        <h3 style={{ marginTop: 0 }}>Edit Settlement Payment</h3>
+                <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(15, 23, 42, 0.6)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000, padding: '16px' }}>
+                    <div style={{ background: '#fff', padding: '24px', borderRadius: '12px', width: '100%', maxWidth: '400px', boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }}>
+                        <h3 style={{ margin: '0 0 16px 0', fontSize: '18px', fontWeight: '600', color: '#0f172a' }}>Edit Settlement Payment</h3>
                         <form onSubmit={handleSaveSettlementSubmit}>
-                            <div style={{ marginBottom: '12px' }}>
-                                <label style={{ display: 'block', marginBottom: '5px' }}>Amount Paid:</label>
+                            <div style={{ marginBottom: '14px' }}>
+                                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '600', color: '#475569' }}>Amount Paid</label>
                                 <input 
                                     type="number" 
                                     step="0.01"
                                     value={settlementForm.amountPaid} 
                                     onChange={(e) => setSettlementForm({...settlementForm, amountPaid: e.target.value})}
                                     required
-                                    style={{ width: '100%', padding: '6px' }}
+                                    style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '14px', outline: 'none' }}
                                 />
                             </div>
-                            <div style={{ marginBottom: '12px' }}>
-                                <label style={{ display: 'block', marginBottom: '5px' }}>Date:</label>
+                            <div style={{ marginBottom: '14px' }}>
+                                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '600', color: '#475569' }}>Date</label>
                                 <input 
                                     type="date" 
                                     value={settlementForm.settlementDate} 
                                     onChange={(e) => setSettlementForm({...settlementForm, settlementDate: e.target.value})}
                                     required
-                                    style={{ width: '100%', padding: '6px' }}
+                                    style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '14px', outline: 'none' }}
                                 />
                             </div>
-                            <div style={{ marginBottom: '15px' }}>
-                                <label style={{ display: 'block', marginBottom: '5px' }}>Note:</label>
+                            <div style={{ marginBottom: '20px' }}>
+                                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '600', color: '#475569' }}>Note</label>
                                 <input 
                                     type="text" 
                                     value={settlementForm.note} 
                                     onChange={(e) => setSettlementForm({...settlementForm, note: e.target.value})}
-                                    style={{ width: '100%', padding: '6px' }}
+                                    style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '14px', outline: 'none' }}
                                 />
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
-                                <button type="button" onClick={() => setShowSettlementModal(false)} style={{ padding: '6px 12px', background: '#6c757d', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Cancel</button>
-                                <button type="submit" style={{ padding: '6px 12px', background: '#28a745', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Update</button>
+                                <button type="button" onClick={() => setShowSettlementModal(false)} style={{ padding: '8px 14px', background: '#64748b', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', fontWeight: '600' }}>Cancel</button>
+                                <button type="submit" style={{ padding: '8px 14px', background: '#16a34a', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', fontWeight: '600' }}>Update</button>
                             </div>
                         </form>
                     </div>

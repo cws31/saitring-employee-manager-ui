@@ -9,7 +9,6 @@ export default function AdvancePage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-
   const [inlineInputs, setInlineInputs] = useState({});
 
   const year = currentDate.getFullYear();
@@ -55,7 +54,6 @@ export default function AdvancePage() {
         setSuccess('Advance payment recorded successfully!');
       }
 
-      // Clear inline form state for this specific employee
       setInlineInputs(prev => ({
         ...prev,
         [empId]: { amount: '', paymentDate: new Date().toISOString().split('T')[0], note: '', editingId: null, showForm: false }
@@ -98,7 +96,6 @@ export default function AdvancePage() {
   const handleNextMonth = () => setCurrentDate(new Date(year, month, 1));
   const monthName = currentDate.toLocaleString('default', { month: 'long', year: 'numeric' });
 
-  
   const totalAdvances = advances
     .filter(item => !item.note || !item.note.toLowerCase().includes('carry-forward'))
     .reduce((sum, item) => sum + item.amount, 0);
@@ -148,32 +145,30 @@ export default function AdvancePage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Advance Payments / Hisab</h1>
-          <p className="text-sm text-gray-500">Track mid-month cash or online advances given to employees.</p>
+          <h1 className="text-xl font-medium text-gray-800 tracking-wide">Advance Payments / Hisab</h1>
+          <p className="text-xs text-gray-500 mt-0.5">Track mid-month cash or online advances given to employees.</p>
         </div>
 
-        <div className="flex items-center space-x-6">
-          {/* Total Advanced Display on Top */}
-          <div className="bg-blue-50 text-blue-800 border border-blue-200 px-4 py-2 rounded-lg shadow-sm text-sm font-semibold">
-            Total Advanced ({monthName}): <span className="text-blue-700 font-bold">{formatCurrency(totalAdvances)}</span>
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="bg-white border border-gray-100 px-3 py-1.5 rounded shadow-sm text-xs font-normal text-gray-700">
+            Total Advanced ({monthName}): <span className="text-blue-700 font-medium">{formatCurrency(totalAdvances)}</span>
           </div>
 
-          <div className="flex items-center space-x-4 bg-white p-2 rounded-lg shadow border">
-            <button onClick={handlePrevMonth} className="px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded font-bold">&larr;</button>
-            <span className="text-lg font-semibold text-gray-800">{monthName}</span>
-            <button onClick={handleNextMonth} className="px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded font-bold">&rarr;</button>
+          <div className="flex items-center space-x-3 bg-white px-3 py-1.5 rounded shadow-sm border border-gray-100">
+            <button onClick={handlePrevMonth} className="px-2.5 py-1 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded text-xs transition-colors cursor-pointer">&larr;</button>
+            <span className="text-sm font-medium text-gray-800 min-w-[130px] text-center">{monthName}</span>
+            <button onClick={handleNextMonth} className="px-2.5 py-1 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded text-xs transition-colors cursor-pointer">&rarr;</button>
           </div>
         </div>
       </div>
 
-      {error && <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">{error}</div>}
-      {success && <div className="mb-4 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md text-sm">{success}</div>}
+      {error && <div className="mb-4 bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded text-xs">{error}</div>}
+      {success && <div className="mb-4 bg-green-50 border border-green-100 text-green-700 px-4 py-3 rounded text-xs">{success}</div>}
 
-      {/* Employee Cards with Integrated History and Inline Controls */}
-      <div className="bg-white p-6 rounded-lg shadow border border-gray-200">
-        <h2 className="text-lg font-bold text-gray-800 mb-4">Employee Advances & History ({monthName})</h2>
+      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+        <h2 className="text-sm font-medium text-gray-800 mb-4 tracking-wide">Employee Advances & History ({monthName})</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {employees.map(emp => {
             const summary = employeeSummaryMap[emp.id] || { totalAmount: 0, transactions: [] };
@@ -186,17 +181,17 @@ export default function AdvancePage() {
             };
             
             const totalSummaryColor = summary.totalAmount < 0 
-              ? 'text-red-600' 
+              ? 'text-rose-600' 
               : summary.totalAmount > 0 
-                ? 'text-green-600' 
+                ? 'text-emerald-600' 
                 : 'text-blue-600';
 
             return (
-              <div key={emp.id} className="border border-gray-200 rounded-lg p-4 bg-gray-50 flex flex-col justify-between shadow-sm">
+              <div key={emp.id} className="border border-gray-100 rounded-lg p-4 bg-gray-50/50 flex flex-col justify-between shadow-sm">
                 <div>
-                  <div className="flex justify-between items-center border-b border-gray-200 pb-2 mb-3">
-                    <h3 className="font-bold text-gray-900">{emp.name}</h3>
-                    <span className={`text-sm font-bold ${totalSummaryColor}`}>
+                  <div className="flex justify-between items-center border-b border-gray-100 pb-2.5 mb-3">
+                    <h3 className="font-medium text-gray-800 text-sm">{emp.name}</h3>
+                    <span className={`text-xs font-medium ${totalSummaryColor}`}>
                       Total: {formatCurrency(summary.totalAmount)}
                     </span>
                   </div>
@@ -211,31 +206,31 @@ export default function AdvancePage() {
 
                         const isRed = (isDue || tx.amount < 0);
                         const badgeColorClass = isRed 
-                          ? 'text-red-700 bg-red-50 border-red-200' 
-                          : 'text-green-700 bg-green-50 border-green-200';
+                          ? 'text-rose-700 bg-rose-50/60 border-rose-100' 
+                          : 'text-emerald-700 bg-emerald-50/60 border-emerald-100';
 
                         return (
                           <div key={tx.id} className={`p-2 rounded border text-xs flex justify-between items-center shadow-sm ${badgeColorClass}`}>
                             <div className="overflow-hidden mr-2">
-                              <span className="font-semibold text-gray-700">{tx.paymentDate}</span>
-                              {tx.note && <p className="text-gray-500 italic truncate max-w-[120px]">{tx.note}</p>}
+                              <span className="font-medium text-gray-700">{tx.paymentDate}</span>
+                              {tx.note && <p className="text-gray-500 truncate max-w-[120px]">{tx.note}</p>}
                             </div>
                             <div className="flex items-center space-x-2 shrink-0">
-                              <span className={`font-bold ${isRed ? 'text-red-600' : 'text-green-700'}`}>
+                              <span className={`font-medium ${isRed ? 'text-rose-600' : 'text-emerald-700'}`}>
                                 {formatCurrency(tx.amount)}
                               </span>
                               {!isCarryForward && (
-                                <div className="flex items-center space-x-1 border-l pl-2 border-gray-300">
+                                <div className="flex items-center space-x-1 border-l pl-2 border-gray-200">
                                   <button
                                     onClick={() => handleInlineEditClick(emp.id, tx)}
-                                    className="text-blue-600 hover:text-blue-800 font-semibold"
+                                    className="text-blue-600 hover:text-blue-800 font-normal cursor-pointer"
                                     title="Edit amount"
                                   >
                                     Edit
                                   </button>
                                   <button
                                     onClick={() => handleDelete(tx.id)}
-                                    className="text-red-600 hover:text-red-800 font-semibold"
+                                    className="text-rose-600 hover:text-rose-800 font-normal cursor-pointer"
                                     title="Delete record"
                                   >
                                     Del
@@ -250,30 +245,29 @@ export default function AdvancePage() {
                   )}
                 </div>
 
-                {/* Inline Action Toggle & Form */}
-                <div className="mt-3 pt-3 border-t border-gray-200">
+                <div className="mt-3 pt-3 border-t border-gray-100">
                   {!empInput.showForm ? (
                     <button
                       onClick={() => setInlineInputs(prev => ({
                         ...prev,
                         [emp.id]: { ...empInput, showForm: true, editingId: null, amount: '', note: '' }
                       }))}
-                      className="w-full bg-blue-50 text-blue-600 hover:bg-blue-100 font-medium py-1.5 px-3 rounded text-xs transition border border-blue-200"
+                      className="w-full bg-blue-50 text-blue-700 hover:bg-blue-100 font-normal py-1.5 px-3 rounded text-xs transition border border-blue-100 cursor-pointer"
                     >
                       + Add Advance for {emp.name.split(' ')[0]}
                     </button>
                   ) : (
-                    <div className="bg-white p-3 rounded border border-blue-200 space-y-2 text-xs">
-                      <div className="flex justify-between items-center font-semibold text-gray-700">
+                    <div className="bg-white p-3 rounded border border-blue-100 space-y-2 text-xs shadow-sm">
+                      <div className="flex justify-between items-center font-medium text-gray-700">
                         <span>{empInput.editingId ? 'Edit Advance' : 'New Advance'}</span>
                         <button
                           onClick={() => setInlineInputs(prev => ({
                             ...prev,
                             [emp.id]: { ...empInput, showForm: false, editingId: null }
                           }))}
-                          className="text-gray-400 hover:text-gray-600"
+                          className="text-gray-400 hover:text-gray-600 text-sm font-light cursor-pointer"
                         >
-                          Cancel
+                          &times;
                         </button>
                       </div>
                       <div>
@@ -286,7 +280,7 @@ export default function AdvancePage() {
                             ...prev,
                             [emp.id]: { ...empInput, amount: e.target.value }
                           }))}
-                          className="w-full border rounded p-1.5 outline-none focus:ring-1 focus:ring-blue-500"
+                          className="w-full border border-gray-300 rounded p-1.5 text-xs focus:outline-none focus:border-blue-600 transition-colors"
                         />
                       </div>
                       <div>
@@ -297,7 +291,7 @@ export default function AdvancePage() {
                             ...prev,
                             [emp.id]: { ...empInput, paymentDate: e.target.value }
                           }))}
-                          className="w-full border rounded p-1.5 outline-none focus:ring-1 focus:ring-blue-500"
+                          className="w-full border border-gray-300 rounded p-1.5 text-xs focus:outline-none focus:border-blue-600 transition-colors"
                         />
                       </div>
                       <div>
@@ -309,16 +303,16 @@ export default function AdvancePage() {
                             ...prev,
                             [emp.id]: { ...empInput, note: e.target.value }
                           }))}
-                          className="w-full border rounded p-1.5 outline-none focus:ring-1 focus:ring-blue-500"
+                          className="w-full border border-gray-300 rounded p-1.5 text-xs focus:outline-none focus:border-blue-600 transition-colors"
                         />
                       </div>
                       <button
                         onClick={() => handleInlineSubmit(emp.id)}
-                        className={`w-full py-1.5 rounded font-medium text-white transition ${
-                          empInput.editingId ? 'bg-amber-600 hover:bg-amber-700' : 'bg-blue-600 hover:bg-blue-700'
+                        className={`w-full py-1.5 rounded font-normal text-white transition text-xs cursor-pointer shadow-sm ${
+                          empInput.editingId ? 'bg-amber-600 hover:bg-amber-700' : 'bg-blue-700 hover:bg-blue-800'
                         }`}
                       >
-                        {empInput.editingId ? 'Update' : 'Save'}
+                        {empInput.editingId ? 'Update Record' : 'Save Record'}
                       </button>
                     </div>
                   )}
