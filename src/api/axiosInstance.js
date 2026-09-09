@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const axiosInstance = axios.create({
-  baseURL: 'http://localhost:8080', 
+  baseURL: 'http://localhost:8080',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -10,9 +10,14 @@ const axiosInstance = axios.create({
 axiosInstance.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
+
     if (token) {
-      config.headers['Authorization'] = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+      config.headers['Authorization'] =
+        token.startsWith('Bearer ')
+          ? token
+          : `Bearer ${token}`;
     }
+
     return config;
   },
   (error) => Promise.reject(error)
@@ -20,11 +25,20 @@ axiosInstance.interceptors.request.use(
 
 axiosInstance.interceptors.response.use(
   (response) => response,
+
   (error) => {
-    if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+    const status = error.response?.status;
+    const requestUrl = error.config?.url;
+
+    
+    const isLoginRequest =
+      requestUrl?.includes('/api/auth/login');
+
+    if (status === 401 && !isLoginRequest) {
       localStorage.removeItem('token');
       window.location.href = '/login';
     }
+
     return Promise.reject(error);
   }
 );
