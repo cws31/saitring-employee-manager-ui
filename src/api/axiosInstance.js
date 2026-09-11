@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const axiosInstance = axios.create({
-  baseURL: 'http://localhost:8080',
+  baseURL: import.meta.env.VITE_API_URL,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -30,7 +30,6 @@ axiosInstance.interceptors.response.use(
     const status = error.response?.status;
     const requestUrl = error.config?.url;
 
-    
     const isLoginRequest =
       requestUrl?.includes('/api/auth/login');
 
