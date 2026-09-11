@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { monthClosingService } from "../../api/HisabService";
 import { settlementService } from "../../api/settlementService";
@@ -12,32 +13,27 @@ const MonthClosingPage = () => {
     const [rowPaymentInputs, setRowPaymentInputs] = useState({});
 
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
-    const [success, setSuccess] = useState('');
+    const [error, setError] = useState("");
+    const [success, setSuccess] = useState("");
 
-    const [activeHistoryEmployee, setActiveHistoryEmployee] = useState(null);
+    const [activeHistoryEmployee, setActiveHistoryEmployee] =
+        useState(null);
 
-    const [showSettlementModal, setShowSettlementModal] = useState(false);
+    const [showSettlementModal, setShowSettlementModal] =
+        useState(false);
 
     const [settlementForm, setSettlementForm] = useState({
         id: null,
-        employeeId: '',
-        amountPaid: '',
-        settlementDate: new Date().toISOString().split('T')[0],
-        note: ''
+        employeeId: "",
+        amountPaid: "",
+        settlementDate: new Date().toISOString().split("T")[0],
+        note: ""
     });
 
     const [fieldErrors, setFieldErrors] = useState({});
 
     /*
      * Extract the backend message returned by GlobalExceptionHandler.
-     *
-     * Example:
-     * {
-     *   "status": 404,
-     *   "message": "Hisab record not found with id: 10",
-     *   "errors": {}
-     * }
      */
     const getBackendErrorMessage = (err, fallbackMessage) => {
         const response = err.response?.data;
@@ -46,7 +42,7 @@ const MonthClosingPage = () => {
             return response.message;
         }
 
-        if (typeof response === 'string') {
+        if (typeof response === "string") {
             return response;
         }
 
@@ -65,7 +61,7 @@ const MonthClosingPage = () => {
 
         if (
             response?.errors &&
-            typeof response.errors === 'object'
+            typeof response.errors === "object"
         ) {
             return response.errors;
         }
@@ -90,16 +86,16 @@ const MonthClosingPage = () => {
     };
 
     const clearMessages = () => {
-        setError('');
-        setSuccess('');
+        setError("");
+        setSuccess("");
     };
 
     const showSuccessMessage = (message) => {
-        setError('');
+        setError("");
         setSuccess(message);
 
         setTimeout(() => {
-            setSuccess('');
+            setSuccess("");
         }, 2500);
     };
 
@@ -111,7 +107,7 @@ const MonthClosingPage = () => {
 
     const loadMonthReport = async (y, m) => {
         setLoading(true);
-        setError('');
+        setError("");
 
         try {
             const data =
@@ -139,7 +135,7 @@ const MonthClosingPage = () => {
                         initialRowInputs[empId] =
                             remaining > 0
                                 ? remaining
-                                : '';
+                                : "";
                     }
                 });
 
@@ -166,7 +162,6 @@ const MonthClosingPage = () => {
                     }
                 }
             }
-
         } catch (err) {
             setSelectedClosing(null);
             setRowPaymentInputs({});
@@ -177,7 +172,6 @@ const MonthClosingPage = () => {
                     "Report not found for selected month/year."
                 )
             );
-
         } finally {
             setLoading(false);
         }
@@ -187,9 +181,7 @@ const MonthClosingPage = () => {
         employeeId,
         value
     ) => {
-        clearFieldError(
-            `payment_${employeeId}`
-        );
+        clearFieldError(`payment_${employeeId}`);
 
         setRowPaymentInputs((prev) => ({
             ...prev,
@@ -225,7 +217,7 @@ const MonthClosingPage = () => {
             const settlementDate =
                 new Date()
                     .toISOString()
-                    .split('T')[0];
+                    .split("T")[0];
 
             const note =
                 `Month closing payment for ${month}/${year}`;
@@ -239,7 +231,7 @@ const MonthClosingPage = () => {
 
             setRowPaymentInputs((prev) => ({
                 ...prev,
-                [empId]: ''
+                [empId]: ""
             }));
 
             showSuccessMessage(
@@ -250,7 +242,6 @@ const MonthClosingPage = () => {
                 year,
                 month
             );
-
         } catch (err) {
             console.error(
                 "Failed to process direct payment",
@@ -320,7 +311,6 @@ const MonthClosingPage = () => {
                     ? "Hisab marked as completed successfully."
                     : "Hisab marked as pending successfully."
             );
-
         } catch (err) {
             console.error(
                 "Failed to update Hisab completion status",
@@ -345,16 +335,16 @@ const MonthClosingPage = () => {
             employeeId:
                 item.employee
                     ? item.employee.id
-                    : '',
+                    : "",
             amountPaid:
                 item.amountPaid,
             settlementDate:
                 item.settlementDate ||
                 new Date()
                     .toISOString()
-                    .split('T')[0],
+                    .split("T")[0],
             note:
-                item.note || ''
+                item.note || ""
         });
 
         setShowSettlementModal(true);
@@ -398,7 +388,6 @@ const MonthClosingPage = () => {
                 year,
                 month
             );
-
         } catch (err) {
             console.error(
                 "Failed to update settlement record",
@@ -442,7 +431,6 @@ const MonthClosingPage = () => {
                     year,
                     month
                 );
-
             } catch (err) {
                 console.error(
                     "Failed to delete settlement",
@@ -460,342 +448,228 @@ const MonthClosingPage = () => {
     };
 
     return (
-        <div
-            style={{
-                padding: '24px',
-                maxWidth: '1400px',
-                margin: '0 auto',
-                fontFamily:
-                    '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
-                color: '#1e293b'
-            }}
-        >
+        <div className="w-full max-w-[1400px] mx-auto px-3 py-4 sm:px-4 sm:py-6 lg:px-6 font-sans text-slate-800">
 
             {/* Page Header */}
-            <div style={{ marginBottom: '24px' }}>
-
-                <h2
-                    style={{
-                        margin: '0 0 6px 0',
-                        fontSize: '24px',
-                        fontWeight: '700',
-                        letterSpacing: '-0.025em'
-                    }}
-                >
+            <div className="mb-5 sm:mb-6">
+                <h2 className="m-0 text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
                     Month Closing & Hisab Management
                 </h2>
 
-                <p
-                    style={{
-                        margin: 0,
-                        fontSize: '14px',
-                        color: '#64748b'
-                    }}
-                >
+                <p className="mt-1.5 text-xs sm:text-sm text-slate-500">
                     Track employee attendance, earnings,
                     balances, and process quick payments.
                 </p>
-
             </div>
 
-            {/* Filter Controls Bar */}
-            <div
-                style={{
-                    background: '#ffffff',
-                    padding: '16px 20px',
-                    borderRadius: '12px',
-                    marginBottom: '24px',
-                    border: '1px solid #e2e8f0',
-                    boxShadow:
-                        '0 1px 3px rgba(0,0,0,0.05)',
-                    display: 'flex',
-                    flexWrap: 'wrap',
-                    gap: '20px',
-                    alignItems: 'center'
-                }}
-            >
+            {/* Filter Controls */}
+            <div className="mb-5 sm:mb-6 bg-white p-4 sm:px-5 sm:py-4 rounded-xl border border-slate-200 shadow-sm">
 
-                <div
-                    style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px'
-                    }}
-                >
-                    <label
-                        style={{
-                            fontSize: '13px',
-                            fontWeight: '600',
-                            color: '#475569'
-                        }}
-                    >
-                        Year
-                    </label>
+                <div className="flex flex-col sm:flex-row sm:flex-wrap gap-4 sm:gap-5 sm:items-center">
 
-                    <input
-                        type="number"
-                        value={year}
-                        onChange={(e) =>
-                            setYear(
-                                e.target.value
-                            )
-                        }
-                        style={{
-                            padding: '8px 12px',
-                            width: '100px',
-                            borderRadius: '6px',
-                            border:
-                                '1px solid #cbd5e1',
-                            fontSize: '14px',
-                            outline: 'none'
-                        }}
-                        required
-                    />
-                </div>
+                    {/* Year */}
+                    <div className="flex items-center gap-2">
+                        <label className="text-xs sm:text-[13px] font-semibold text-slate-600 min-w-[38px]">
+                            Year
+                        </label>
 
-                <div
-                    style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px'
-                    }}
-                >
-                    <label
-                        style={{
-                            fontSize: '13px',
-                            fontWeight: '600',
-                            color: '#475569'
-                        }}
-                    >
-                        Month
-                    </label>
-
-                    <select
-                        value={month}
-                        onChange={(e) =>
-                            setMonth(
-                                parseInt(
-                                    e.target.value
-                                )
-                            )
-                        }
-                        style={{
-                            padding: '8px 12px',
-                            width: '170px',
-                            borderRadius: '6px',
-                            border:
-                                '1px solid #cbd5e1',
-                            fontSize: '14px',
-                            outline: 'none',
-                            background: '#fff'
-                        }}
-                    >
-                        {Array.from(
-                            { length: 12 },
-                            (_, i) => (
-                                <option
-                                    key={i + 1}
-                                    value={i + 1}
-                                >
-                                    {new Date(
-                                        0,
-                                        i
-                                    ).toLocaleString(
-                                        'default',
-                                        {
-                                            month:
-                                                'long'
-                                        }
-                                    )}{' '}
-                                    ({i + 1})
-                                </option>
-                            )
-                        )}
-                    </select>
-                </div>
-
-                {loading && (
-                    <div
-                        style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px',
-                            color: '#0284c7',
-                            fontSize: '14px',
-                            fontWeight: '600'
-                        }}
-                    >
-                        Loading report...
+                        <input
+                            type="number"
+                            value={year}
+                            onChange={(e) =>
+                                setYear(e.target.value)
+                            }
+                            className="w-full sm:w-[100px] px-3 py-2 rounded-md border border-slate-300 text-sm outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
+                            required
+                        />
                     </div>
-                )}
 
+                    {/* Month */}
+                    <div className="flex items-center gap-2">
+                        <label className="text-xs sm:text-[13px] font-semibold text-slate-600 min-w-[38px]">
+                            Month
+                        </label>
+
+                        <select
+                            value={month}
+                            onChange={(e) =>
+                                setMonth(
+                                    parseInt(
+                                        e.target.value
+                                    )
+                                )
+                            }
+                            className="w-full sm:w-[170px] px-3 py-2 rounded-md border border-slate-300 text-sm outline-none bg-white focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
+                        >
+                            {Array.from(
+                                { length: 12 },
+                                (_, i) => (
+                                    <option
+                                        key={i + 1}
+                                        value={i + 1}
+                                    >
+                                        {new Date(
+                                            0,
+                                            i
+                                        ).toLocaleString(
+                                            "default",
+                                            {
+                                                month:
+                                                    "long"
+                                            }
+                                        )}{" "}
+                                        ({i + 1})
+                                    </option>
+                                )
+                            )}
+                        </select>
+                    </div>
+
+                    {/* Loading */}
+                    {loading && (
+                        <div className="flex items-center gap-2 text-sky-600 text-sm font-semibold">
+                            <span className="inline-block w-4 h-4 border-2 border-sky-200 border-t-sky-600 rounded-full animate-spin" />
+                            Loading report...
+                        </div>
+                    )}
+                </div>
             </div>
 
             {/* Error */}
             {error && (
-                <div
-                    style={{
-                        padding: '12px 16px',
-                        background: '#fef2f2',
-                        border:
-                            '1px solid #fecaca',
-                        color: '#dc2626',
-                        borderRadius: '8px',
-                        marginBottom: '20px',
-                        fontSize: '14px'
-                    }}
-                >
+                <div className="mb-5 px-4 py-3 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm">
                     {error}
                 </div>
             )}
 
             {/* Success */}
             {success && (
-                <div
-                    style={{
-                        padding: '12px 16px',
-                        background: '#f0fdf4',
-                        border:
-                            '1px solid #bbf7d0',
-                        color: '#16a34a',
-                        borderRadius: '8px',
-                        marginBottom: '20px',
-                        fontSize: '14px'
-                    }}
-                >
+                <div className="mb-5 px-4 py-3 bg-green-50 border border-green-200 text-green-600 rounded-lg text-sm">
                     {success}
                 </div>
             )}
 
-            {/* Main Report Card */}
+            {/* Main Report */}
             {selectedClosing && (
-                <div
-                    style={{
-                        background: '#ffffff',
-                        borderRadius: '12px',
-                        border:
-                            '1px solid #e2e8f0',
-                        boxShadow:
-                            '0 1px 3px rgba(0,0,0,0.05)',
-                        marginBottom: '30px',
-                        overflow: 'hidden'
-                    }}
-                >
+                <div className="bg-white rounded-xl border border-slate-200 shadow-sm mb-8 overflow-hidden">
 
-                    <div
-                        style={{
-                            padding: '18px 24px',
-                            borderBottom:
-                                '1px solid #e2e8f0',
-                            background: '#f8fafc'
-                        }}
-                    >
-                        <h3
-                            style={{
-                                margin: 0,
-                                fontSize: '16px',
-                                fontWeight: '600',
-                                color: '#0f172a'
-                            }}
-                        >
-                            Report Overview —{' '}
+                    {/* Report Header */}
+                    <div className="px-4 py-4 sm:px-6 sm:py-[18px] border-b border-slate-200 bg-slate-50">
+                        <h3 className="m-0 text-sm sm:text-base font-semibold text-slate-900">
+                            Report Overview —{" "}
                             {new Date(
                                 0,
                                 selectedClosing.month - 1
                             ).toLocaleString(
-                                'default',
+                                "default",
                                 {
-                                    month: 'long'
+                                    month: "long"
                                 }
-                            )}{' '}
+                            )}{" "}
                             {selectedClosing.year}
                         </h3>
                     </div>
 
-                    <div
-                        style={{
-                            overflowX: 'auto'
-                        }}
-                    >
-                        <table
-                            style={{
-                                width: '100%',
-                                borderCollapse:
-                                    'collapse',
-                                textAlign: 'left',
-                                fontSize: '14px'
-                            }}
-                        >
+                    {/* Financial Summary */}
+                    <div className="p-4 sm:px-6 sm:py-5 border-b border-slate-200 bg-white">
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+
+                            {/* Total Employees */}
+                            <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 sm:p-5">
+                                <div className="text-[11px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
+                                    Total Employees
+                                </div>
+
+                                <div className="text-2xl font-bold text-slate-900">
+                                    {selectedClosing.totalEmployees ?? 0}
+                                </div>
+
+                                <div className="mt-1 text-xs text-slate-400">
+                                    Active employees in this closing
+                                </div>
+                            </div>
+
+                            {/* Total Payable */}
+                            <div className="bg-green-50 border border-green-200 rounded-xl p-4 sm:p-5">
+                                <div className="text-[11px] sm:text-xs font-semibold text-green-700 uppercase tracking-wider mb-2">
+                                    Total Payable
+                                </div>
+
+                                <div className="text-2xl font-bold text-green-600 break-words">
+                                    ₹
+                                    {Number(
+                                        selectedClosing.totalPayable ?? 0
+                                    ).toFixed(2)}
+                                </div>
+
+                                <div className="mt-1 text-xs text-slate-500">
+                                    Amount currently payable
+                                </div>
+                            </div>
+
+                            {/* Total Over Advance */}
+                            <div className="bg-red-50 border border-red-200 rounded-xl p-4 sm:p-5">
+                                <div className="text-[11px] sm:text-xs font-semibold text-red-700 uppercase tracking-wider mb-2">
+                                    Total Over Advance
+                                </div>
+
+                                <div className="text-2xl font-bold text-red-600 break-words">
+                                    ₹
+                                    {Number(
+                                        selectedClosing.totalOverAdvance ?? 0
+                                    ).toFixed(2)}
+                                </div>
+
+                                <div className="mt-1 text-xs text-slate-500">
+                                    Employees with excess advance
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Employee Report */}
+                    <div className="w-full overflow-x-auto">
+
+                        <table className="w-full min-w-[1050px] border-collapse text-left text-sm">
 
                             <thead>
-                                <tr
-                                    style={{
-                                        background:
-                                            '#f1f5f9',
-                                        color:
-                                            '#475569',
-                                        fontSize:
-                                            '12px',
-                                        textTransform:
-                                            'uppercase',
-                                        letterSpacing:
-                                            '0.05em'
-                                    }}
-                                >
-                                    <th style={thStyle}>
+                                <tr className="bg-slate-100 text-slate-600 text-[11px] sm:text-xs uppercase tracking-wider">
+                                    <th className="px-4 py-3 font-semibold border-b border-slate-200">
                                         Employee
                                     </th>
 
-                                    <th style={thStyle}>
+                                    <th className="px-4 py-3 font-semibold border-b border-slate-200">
                                         Present Days
                                     </th>
 
-                                    <th style={thStyle}>
+                                    <th className="px-4 py-3 font-semibold border-b border-slate-200">
                                         Total Earning
                                     </th>
 
-                                    <th style={thStyle}>
+                                    <th className="px-4 py-3 font-semibold border-b border-slate-200">
                                         Advance
                                     </th>
 
-                                    <th style={thStyle}>
+                                    <th className="px-4 py-3 font-semibold border-b border-slate-200">
                                         Remaining Balance
                                     </th>
 
-                                    <th
-                                        style={{
-                                            ...thStyle,
-                                            textAlign:
-                                                'center'
-                                        }}
-                                    >
+                                    <th className="px-4 py-3 font-semibold border-b border-slate-200 text-center">
                                         Hisab Status
                                     </th>
 
-                                    <th
-                                        style={{
-                                            ...thStyle,
-                                            textAlign:
-                                                'center'
-                                        }}
-                                    >
+                                    <th className="px-4 py-3 font-semibold border-b border-slate-200 text-center">
                                         Paid History
                                     </th>
 
-                                    <th
-                                        style={{
-                                            ...thStyle,
-                                            textAlign:
-                                                'center'
-                                        }}
-                                    >
+                                    <th className="px-4 py-3 font-semibold border-b border-slate-200 text-center">
                                         Quick Pay
                                     </th>
                                 </tr>
                             </thead>
 
                             <tbody>
-
                                 {selectedClosing.details.map(
                                     (d, index) => {
 
@@ -815,10 +689,10 @@ const MonthClosingPage = () => {
 
                                         const balanceColor =
                                             balance < 0
-                                                ? '#dc2626'
+                                                ? "text-red-600"
                                                 : balance > 0
-                                                    ? '#16a34a'
-                                                    : '#2563eb';
+                                                    ? "text-green-600"
+                                                    : "text-blue-600";
 
                                         const prevBalance =
                                             d.previousBalance ??
@@ -827,12 +701,10 @@ const MonthClosingPage = () => {
                                             0;
 
                                         const advanceVal =
-                                            d.totalAdvance ??
-                                            0;
+                                            d.totalAdvance ?? 0;
 
                                         const earningVal =
-                                            d.totalEarning ??
-                                            0;
+                                            d.totalEarning ?? 0;
 
                                         return (
                                             <tr
@@ -840,61 +712,45 @@ const MonthClosingPage = () => {
                                                     d.id ||
                                                     index
                                                 }
-                                                style={{
-                                                    borderBottom:
-                                                        '1px solid #e2e8f0'
-                                                }}
+                                                className="border-b border-slate-200 hover:bg-slate-50 transition-colors"
                                             >
 
-                                                <td style={tdStyle}>
-                                                    <span
-                                                        style={{
-                                                            fontWeight:
-                                                                '600',
-                                                            color:
-                                                                '#0f172a'
-                                                        }}
-                                                    >
+                                                {/* Employee */}
+                                                <td className="px-4 py-3.5 text-slate-700">
+                                                    <span className="font-semibold text-slate-900">
                                                         {
                                                             d.employeeName
                                                         }
                                                     </span>
                                                 </td>
 
-                                                <td style={tdStyle}>
+                                                {/* Present */}
+                                                <td className="px-4 py-3.5 text-slate-700">
                                                     {
                                                         d.totalPresences
                                                     }
                                                 </td>
 
-                                                <td style={tdStyle}>
+                                                {/* Earning */}
+                                                <td className="px-4 py-3.5 text-slate-700">
                                                     ₹
                                                     {
                                                         earningVal
                                                     }
                                                 </td>
 
-                                                <td style={tdStyle}>
+                                                {/* Advance */}
+                                                <td className="px-4 py-3.5 text-slate-700">
                                                     ₹
                                                     {
                                                         advanceVal
                                                     }
                                                 </td>
 
-                                                <td
-                                                    style={{
-                                                        ...tdStyle
-                                                    }}
-                                                >
+                                                {/* Balance */}
+                                                <td className="px-4 py-3.5 text-slate-700">
                                                     <div
-                                                        style={{
-                                                            fontWeight:
-                                                                '700',
-                                                            color:
-                                                                balanceColor,
-                                                            fontSize:
-                                                                '15px'
-                                                        }}
+                                                        className={`font-bold text-[15px] ${balanceColor}`}
                                                     >
                                                         ₹
                                                         {
@@ -902,26 +758,15 @@ const MonthClosingPage = () => {
                                                         }
                                                     </div>
 
-                                                    <div
-                                                        style={{
-                                                            fontSize:
-                                                                '11px',
-                                                            color:
-                                                                '#64748b',
-                                                            marginTop:
-                                                                '2px',
-                                                            lineHeight:
-                                                                '1.4'
-                                                        }}
-                                                    >
+                                                    <div className="text-[11px] text-slate-500 mt-0.5 leading-relaxed whitespace-nowrap">
                                                         (Prev: ₹
                                                         {
                                                             prevBalance
-                                                        }{' '}
+                                                        }{" "}
                                                         + Adv: ₹
                                                         {
                                                             advanceVal
-                                                        }{' '}
+                                                        }{" "}
                                                         - Earn: ₹
                                                         {
                                                             earningVal
@@ -929,38 +774,14 @@ const MonthClosingPage = () => {
                                                     </div>
                                                 </td>
 
-                                                <td
-                                                    style={{
-                                                        ...tdStyle,
-                                                        textAlign:
-                                                            'center'
-                                                    }}
-                                                >
+                                                {/* Hisab Status */}
+                                                <td className="px-4 py-3.5 text-center">
                                                     <label
-                                                        style={{
-                                                            cursor:
-                                                                'pointer',
-                                                            display:
-                                                                'inline-flex',
-                                                            alignItems:
-                                                                'center',
-                                                            gap:
-                                                                '6px',
-                                                            background:
-                                                                d.hisabCompleted
-                                                                    ? '#f0fdf4'
-                                                                    : '#f8fafc',
-                                                            padding:
-                                                                '6px 10px',
-                                                            borderRadius:
-                                                                '6px',
-                                                            border:
-                                                                `1px solid ${
-                                                                    d.hisabCompleted
-                                                                        ? '#bbf7d0'
-                                                                        : '#e2e8f0'
-                                                                }`
-                                                        }}
+                                                        className={`cursor-pointer inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border ${
+                                                            d.hisabCompleted
+                                                                ? "bg-green-50 border-green-200"
+                                                                : "bg-slate-50 border-slate-200"
+                                                        }`}
                                                     >
                                                         <input
                                                             type="checkbox"
@@ -973,57 +794,29 @@ const MonthClosingPage = () => {
                                                                     d.hisabCompleted
                                                                 )
                                                             }
-                                                            style={{
-                                                                width:
-                                                                    '15px',
-                                                                height:
-                                                                    '15px',
-                                                                cursor:
-                                                                    'pointer',
-                                                                accentColor:
-                                                                    '#16a34a'
-                                                            }}
+                                                            className="w-[15px] h-[15px] cursor-pointer accent-green-600"
                                                         />
 
                                                         <span
-                                                            style={{
-                                                                fontSize:
-                                                                    '12px',
-                                                                fontWeight:
-                                                                    '600',
-                                                                color:
-                                                                    d.hisabCompleted
-                                                                        ? '#16a34a'
-                                                                        : '#64748b'
-                                                            }}
+                                                            className={`text-xs font-semibold ${
+                                                                d.hisabCompleted
+                                                                    ? "text-green-600"
+                                                                    : "text-slate-500"
+                                                            }`}
                                                         >
                                                             {
                                                                 d.hisabCompleted
-                                                                    ? 'Completed'
-                                                                    : 'Pending'
+                                                                    ? "Completed"
+                                                                    : "Pending"
                                                             }
                                                         </span>
                                                     </label>
                                                 </td>
 
-                                                <td
-                                                    style={{
-                                                        ...tdStyle,
-                                                        textAlign:
-                                                            'center'
-                                                    }}
-                                                >
+                                                {/* Paid History */}
+                                                <td className="px-4 py-3.5 text-center">
 
-                                                    <div
-                                                        style={{
-                                                            fontWeight:
-                                                                '600',
-                                                            color:
-                                                                '#0f172a',
-                                                            marginBottom:
-                                                                '2px'
-                                                        }}
-                                                    >
+                                                    <div className="font-semibold text-slate-900 mb-0.5">
                                                         ₹
                                                         {
                                                             d.amountPaid ||
@@ -1040,24 +833,7 @@ const MonthClosingPage = () => {
                                                                     d
                                                                 )
                                                             }
-                                                            style={{
-                                                                background:
-                                                                    'none',
-                                                                border:
-                                                                    'none',
-                                                                color:
-                                                                    '#0284c7',
-                                                                textDecoration:
-                                                                    'underline',
-                                                                cursor:
-                                                                    'pointer',
-                                                                fontSize:
-                                                                    '12px',
-                                                                padding:
-                                                                    0,
-                                                                fontWeight:
-                                                                    '500'
-                                                            }}
+                                                            className="bg-transparent border-none text-sky-600 underline cursor-pointer text-xs p-0 font-medium hover:text-sky-800"
                                                         >
                                                             View History (
                                                             {
@@ -1066,48 +842,22 @@ const MonthClosingPage = () => {
                                                             )
                                                         </button>
                                                     ) : (
-                                                        <span
-                                                            style={{
-                                                                color:
-                                                                    '#94a3b8',
-                                                                fontSize:
-                                                                    '11px',
-                                                                fontStyle:
-                                                                    'italic'
-                                                            }}
-                                                        >
+                                                        <span className="text-slate-400 text-[11px] italic">
                                                             No records
                                                         </span>
                                                     )}
-
                                                 </td>
 
-                                                <td
-                                                    style={{
-                                                        ...tdStyle,
-                                                        textAlign:
-                                                            'center'
-                                                    }}
-                                                >
+                                                {/* Quick Pay */}
+                                                <td className="px-4 py-3.5 text-center">
 
-                                                    <div
-                                                        style={{
-                                                            display:
-                                                                'flex',
-                                                            gap:
-                                                                '6px',
-                                                            justifyContent:
-                                                                'center',
-                                                            alignItems:
-                                                                'center'
-                                                        }}
-                                                    >
+                                                    <div className="flex flex-col sm:flex-row gap-1.5 justify-center items-center">
 
-                                                        <div>
+                                                        <div className="w-full sm:w-auto">
                                                             <input
                                                                 type="number"
                                                                 step="0.01"
-                                                                placeholder="Amt"
+                                                                placeholder="Amount"
                                                                 value={
                                                                     rowPaymentInputs[
                                                                         empId
@@ -1116,45 +866,21 @@ const MonthClosingPage = () => {
                                                                         ? rowPaymentInputs[
                                                                             empId
                                                                         ]
-                                                                        : ''
+                                                                        : ""
                                                                 }
                                                                 onChange={(
                                                                     e
                                                                 ) =>
                                                                     handleRowPaymentInputChange(
                                                                         empId,
-                                                                        e
-                                                                            .target
-                                                                            .value
+                                                                        e.target.value
                                                                     )
                                                                 }
-                                                                style={{
-                                                                    width:
-                                                                        '70px',
-                                                                    padding:
-                                                                        '6px 8px',
-                                                                    borderRadius:
-                                                                        '6px',
-                                                                    border:
-                                                                        '1px solid #cbd5e1',
-                                                                    fontSize:
-                                                                        '13px',
-                                                                    outline:
-                                                                        'none'
-                                                                }}
+                                                                className="w-full sm:w-[90px] px-2 py-1.5 rounded-md border border-slate-300 text-xs outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
                                                             />
 
                                                             {fieldErrors.amountPaid && (
-                                                                <div
-                                                                    style={{
-                                                                        color:
-                                                                            '#dc2626',
-                                                                        fontSize:
-                                                                            '10px',
-                                                                        marginTop:
-                                                                            '3px'
-                                                                    }}
-                                                                >
+                                                                <div className="text-red-600 text-[10px] mt-1">
                                                                     {
                                                                         fieldErrors.amountPaid
                                                                     }
@@ -1169,39 +895,17 @@ const MonthClosingPage = () => {
                                                                     d
                                                                 )
                                                             }
-                                                            style={{
-                                                                padding:
-                                                                    '6px 12px',
-                                                                background:
-                                                                    '#16a34a',
-                                                                color:
-                                                                    '#fff',
-                                                                border:
-                                                                    'none',
-                                                                borderRadius:
-                                                                    '6px',
-                                                                cursor:
-                                                                    'pointer',
-                                                                fontWeight:
-                                                                    '600',
-                                                                fontSize:
-                                                                    '13px'
-                                                            }}
+                                                            className="w-full sm:w-auto px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white border-none rounded-md cursor-pointer font-semibold text-xs transition-colors"
                                                         >
                                                             Pay
                                                         </button>
-
                                                     </div>
-
                                                 </td>
-
                                             </tr>
                                         );
                                     }
                                 )}
-
                             </tbody>
-
                         </table>
                     </div>
                 </div>
@@ -1209,72 +913,15 @@ const MonthClosingPage = () => {
 
             {/* View History Modal */}
             {activeHistoryEmployee && (
-                <div
-                    style={{
-                        position: 'fixed',
-                        top: 0,
-                        left: 0,
-                        width: '100%',
-                        height: '100%',
-                        background:
-                            'rgba(15, 23, 42, 0.6)',
-                        display: 'flex',
-                        justifyContent:
-                            'center',
-                        alignItems:
-                            'center',
-                        zIndex: 999,
-                        padding: '16px'
-                    }}
-                >
+                <div className="fixed inset-0 bg-slate-900/60 flex justify-center items-center z-[999] p-3 sm:p-4">
 
-                    <div
-                        style={{
-                            background: '#fff',
-                            padding: '24px',
-                            borderRadius:
-                                '12px',
-                            width: '100%',
-                            maxWidth:
-                                '500px',
-                            maxHeight:
-                                '85vh',
-                            overflowY:
-                                'auto',
-                            boxShadow:
-                                '0 10px 25px rgba(0,0,0,0.1)'
-                        }}
-                    >
+                    <div className="bg-white p-4 sm:p-6 rounded-xl w-full max-w-[650px] max-h-[90vh] overflow-y-auto shadow-2xl">
 
-                        <div
-                            style={{
-                                display:
-                                    'flex',
-                                justifyContent:
-                                    'space-between',
-                                alignItems:
-                                    'center',
-                                borderBottom:
-                                    '1px solid #e2e8f0',
-                                paddingBottom:
-                                    '12px',
-                                marginBottom:
-                                    '16px'
-                            }}
-                        >
+                        {/* Modal Header */}
+                        <div className="flex justify-between items-center border-b border-slate-200 pb-3 mb-4">
 
-                            <h3
-                                style={{
-                                    margin: 0,
-                                    fontSize:
-                                        '18px',
-                                    fontWeight:
-                                        '600',
-                                    color:
-                                        '#0f172a'
-                                }}
-                            >
-                                History:{' '}
+                            <h3 className="m-0 text-base sm:text-lg font-semibold text-slate-900 truncate pr-4">
+                                History:{" "}
                                 {
                                     activeHistoryEmployee.employeeName
                                 }
@@ -1287,245 +934,116 @@ const MonthClosingPage = () => {
                                         null
                                     )
                                 }
-                                style={{
-                                    background:
-                                        'none',
-                                    border:
-                                        'none',
-                                    fontSize:
-                                        '20px',
-                                    cursor:
-                                        'pointer',
-                                    color:
-                                        '#64748b',
-                                    fontWeight:
-                                        'bold'
-                                }}
+                                className="bg-transparent border-none text-xl cursor-pointer text-slate-500 font-bold hover:text-slate-800 shrink-0"
                             >
                                 &times;
                             </button>
-
                         </div>
 
+                        {/* Empty History */}
                         {(
                             !activeHistoryEmployee.settlements ||
                             activeHistoryEmployee.settlements.length ===
                                 0
                         ) ? (
-
-                            <p
-                                style={{
-                                    color:
-                                        '#64748b',
-                                    fontStyle:
-                                        'italic',
-                                    fontSize:
-                                        '14px',
-                                    textAlign:
-                                        'center',
-                                    padding:
-                                        '20px 0'
-                                }}
-                            >
+                            <p className="text-slate-500 italic text-sm text-center py-5">
                                 No payment history
                                 records found
                                 for this month.
                             </p>
-
                         ) : (
 
-                            <table
-                                style={{
-                                    width:
-                                        '100%',
-                                    borderCollapse:
-                                        'collapse',
-                                    fontSize:
-                                        '13px',
-                                    marginBottom:
-                                        '20px'
-                                }}
-                            >
+                            <div className="overflow-x-auto">
+                                <table className="w-full min-w-[520px] border-collapse text-xs sm:text-[13px] mb-5">
 
-                                <thead>
-                                    <tr
-                                        style={{
-                                            background:
-                                                '#f8fafc',
-                                            color:
-                                                '#475569',
-                                            textAlign:
-                                                'left'
-                                        }}
-                                    >
-                                        <th style={historyThStyle}>
-                                            Date
-                                        </th>
+                                    <thead>
+                                        <tr className="bg-slate-50 text-slate-600 text-left">
+                                            <th className="px-2.5 py-2 border-b border-slate-200 font-semibold">
+                                                Date
+                                            </th>
 
-                                        <th style={historyThStyle}>
-                                            Amount
-                                        </th>
+                                            <th className="px-2.5 py-2 border-b border-slate-200 font-semibold">
+                                                Amount
+                                            </th>
 
-                                        <th style={historyThStyle}>
-                                            Note
-                                        </th>
+                                            <th className="px-2.5 py-2 border-b border-slate-200 font-semibold">
+                                                Note
+                                            </th>
 
-                                        <th
-                                            style={{
-                                                ...historyThStyle,
-                                                textAlign:
-                                                    'center'
-                                            }}
-                                        >
-                                            Actions
-                                        </th>
-                                    </tr>
-                                </thead>
+                                            <th className="px-2.5 py-2 border-b border-slate-200 font-semibold text-center">
+                                                Actions
+                                            </th>
+                                        </tr>
+                                    </thead>
 
-                                <tbody>
-
-                                    {activeHistoryEmployee.settlements.map(
-                                        (s) => (
-                                            <tr
-                                                key={
-                                                    s.id
-                                                }
-                                                style={{
-                                                    borderBottom:
-                                                        '1px solid #e2e8f0'
-                                                }}
-                                            >
-
-                                                <td style={historyTdStyle}>
-                                                    {
-                                                        s.settlementDate
+                                    <tbody>
+                                        {activeHistoryEmployee.settlements.map(
+                                            (s) => (
+                                                <tr
+                                                    key={
+                                                        s.id
                                                     }
-                                                </td>
-
-                                                <td
-                                                    style={{
-                                                        ...historyTdStyle,
-                                                        fontWeight:
-                                                            '600',
-                                                        color:
-                                                            '#16a34a'
-                                                    }}
-                                                >
-                                                    ₹
-                                                    {
-                                                        s.amountPaid
-                                                    }
-                                                </td>
-
-                                                <td
-                                                    style={{
-                                                        ...historyTdStyle,
-                                                        color:
-                                                            '#64748b'
-                                                    }}
-                                                >
-                                                    {
-                                                        s.note ||
-                                                        '-'
-                                                    }
-                                                </td>
-
-                                                <td
-                                                    style={{
-                                                        ...historyTdStyle,
-                                                        textAlign:
-                                                            'center'
-                                                    }}
+                                                    className="border-b border-slate-200"
                                                 >
 
-                                                    <div
-                                                        style={{
-                                                            display:
-                                                                'flex',
-                                                            gap:
-                                                                '6px',
-                                                            justifyContent:
-                                                                'center'
-                                                        }}
-                                                    >
+                                                    <td className="px-2.5 py-2.5">
+                                                        {
+                                                            s.settlementDate
+                                                        }
+                                                    </td>
 
-                                                        <button
-                                                            type="button"
-                                                            onClick={() =>
-                                                                handleOpenEditSettlement(
-                                                                    s
-                                                                )
-                                                            }
-                                                            style={{
-                                                                padding:
-                                                                    '4px 8px',
-                                                                background:
-                                                                    '#eab308',
-                                                                color:
-                                                                    '#fff',
-                                                                border:
-                                                                    'none',
-                                                                borderRadius:
-                                                                    '4px',
-                                                                cursor:
-                                                                    'pointer',
-                                                                fontSize:
-                                                                    '12px',
-                                                                fontWeight:
-                                                                    '500'
-                                                            }}
-                                                        >
-                                                            Edit
-                                                        </button>
+                                                    <td className="px-2.5 py-2.5 font-semibold text-green-600">
+                                                        ₹
+                                                        {
+                                                            s.amountPaid
+                                                        }
+                                                    </td>
 
-                                                        <button
-                                                            type="button"
-                                                            onClick={() =>
-                                                                handleDeleteSettlement(
-                                                                    s.id
-                                                                )
-                                                            }
-                                                            style={{
-                                                                padding:
-                                                                    '4px 8px',
-                                                                background:
-                                                                    '#dc2626',
-                                                                color:
-                                                                    '#fff',
-                                                                border:
-                                                                    'none',
-                                                                borderRadius:
-                                                                    '4px',
-                                                                cursor:
-                                                                    'pointer',
-                                                                fontSize:
-                                                                    '12px',
-                                                                fontWeight:
-                                                                    '500'
-                                                            }}
-                                                        >
-                                                            Delete
-                                                        </button>
+                                                    <td className="px-2.5 py-2.5 text-slate-500 max-w-[180px] break-words">
+                                                        {
+                                                            s.note ||
+                                                            "-"
+                                                        }
+                                                    </td>
 
-                                                    </div>
+                                                    <td className="px-2.5 py-2.5 text-center">
 
-                                                </td>
+                                                        <div className="flex gap-1.5 justify-center">
 
-                                            </tr>
-                                        )
-                                    )}
+                                                            <button
+                                                                type="button"
+                                                                onClick={() =>
+                                                                    handleOpenEditSettlement(
+                                                                        s
+                                                                    )
+                                                                }
+                                                                className="px-2 py-1 bg-yellow-500 hover:bg-yellow-600 text-white border-none rounded cursor-pointer text-xs font-medium"
+                                                            >
+                                                                Edit
+                                                            </button>
 
-                                </tbody>
-
-                            </table>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() =>
+                                                                    handleDeleteSettlement(
+                                                                        s.id
+                                                                    )
+                                                                }
+                                                                className="px-2 py-1 bg-red-600 hover:bg-red-700 text-white border-none rounded cursor-pointer text-xs font-medium"
+                                                            >
+                                                                Delete
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            )
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
                         )}
 
-                        <div
-                            style={{
-                                textAlign:
-                                    'right'
-                            }}
-                        >
+                        <div className="text-right">
                             <button
                                 type="button"
                                 onClick={() =>
@@ -1533,80 +1051,22 @@ const MonthClosingPage = () => {
                                         null
                                     )
                                 }
-                                style={{
-                                    padding:
-                                        '8px 16px',
-                                    background:
-                                        '#64748b',
-                                    color:
-                                        '#fff',
-                                    border:
-                                        'none',
-                                    borderRadius:
-                                        '6px',
-                                    cursor:
-                                        'pointer',
-                                    fontSize:
-                                        '14px',
-                                    fontWeight:
-                                        '600'
-                                }}
+                                className="px-4 py-2 bg-slate-500 hover:bg-slate-600 text-white border-none rounded-md cursor-pointer text-sm font-semibold transition-colors"
                             >
                                 Close
                             </button>
                         </div>
-
                     </div>
                 </div>
             )}
 
             {/* Edit Settlement Modal */}
             {showSettlementModal && (
-                <div
-                    style={{
-                        position: 'fixed',
-                        top: 0,
-                        left: 0,
-                        width: '100%',
-                        height: '100%',
-                        background:
-                            'rgba(15, 23, 42, 0.6)',
-                        display: 'flex',
-                        justifyContent:
-                            'center',
-                        alignItems:
-                            'center',
-                        zIndex: 1000,
-                        padding: '16px'
-                    }}
-                >
+                <div className="fixed inset-0 bg-slate-900/60 flex justify-center items-center z-[1000] p-3 sm:p-4">
 
-                    <div
-                        style={{
-                            background: '#fff',
-                            padding: '24px',
-                            borderRadius:
-                                '12px',
-                            width: '100%',
-                            maxWidth:
-                                '400px',
-                            boxShadow:
-                                '0 10px 25px rgba(0,0,0,0.1)'
-                        }}
-                    >
+                    <div className="bg-white p-4 sm:p-6 rounded-xl w-full max-w-[450px] max-h-[90vh] overflow-y-auto shadow-2xl">
 
-                        <h3
-                            style={{
-                                margin:
-                                    '0 0 16px 0',
-                                fontSize:
-                                    '18px',
-                                fontWeight:
-                                    '600',
-                                color:
-                                    '#0f172a'
-                            }}
-                        >
+                        <h3 className="m-0 mb-4 text-base sm:text-lg font-semibold text-slate-900">
                             Edit Settlement Payment
                         </h3>
 
@@ -1617,27 +1077,8 @@ const MonthClosingPage = () => {
                         >
 
                             {/* Amount */}
-                            <div
-                                style={{
-                                    marginBottom:
-                                        '14px'
-                                }}
-                            >
-
-                                <label
-                                    style={{
-                                        display:
-                                            'block',
-                                        marginBottom:
-                                            '6px',
-                                        fontSize:
-                                            '13px',
-                                        fontWeight:
-                                            '600',
-                                        color:
-                                            '#475569'
-                                    }}
-                                >
+                            <div className="mb-3.5">
+                                <label className="block mb-1.5 text-xs sm:text-[13px] font-semibold text-slate-600">
                                     Amount Paid
                                 </label>
 
@@ -1647,81 +1088,37 @@ const MonthClosingPage = () => {
                                     value={
                                         settlementForm.amountPaid
                                     }
-                                    onChange={(
-                                        e
-                                    ) => {
+                                    onChange={(e) => {
                                         clearFieldError(
-                                            'amountPaid'
+                                            "amountPaid"
                                         );
 
                                         setSettlementForm({
                                             ...settlementForm,
                                             amountPaid:
-                                                e
-                                                    .target
-                                                    .value
+                                                e.target.value
                                         });
                                     }}
                                     required
-                                    style={{
-                                        width:
-                                            '100%',
-                                        padding:
-                                            '8px 12px',
-                                        borderRadius:
-                                            '6px',
-                                        border:
-                                            fieldErrors.amountPaid
-                                                ? '1px solid #dc2626'
-                                                : '1px solid #cbd5e1',
-                                        fontSize:
-                                            '14px',
-                                        outline:
-                                            'none'
-                                    }}
+                                    className={`w-full px-3 py-2 rounded-md text-sm outline-none border ${
+                                        fieldErrors.amountPaid
+                                            ? "border-red-600 focus:ring-2 focus:ring-red-100"
+                                            : "border-slate-300 focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
+                                    }`}
                                 />
 
                                 {fieldErrors.amountPaid && (
-                                    <div
-                                        style={{
-                                            color:
-                                                '#dc2626',
-                                            fontSize:
-                                                '12px',
-                                            marginTop:
-                                                '4px'
-                                        }}
-                                    >
+                                    <div className="text-red-600 text-xs mt-1">
                                         {
                                             fieldErrors.amountPaid
                                         }
                                     </div>
                                 )}
-
                             </div>
 
                             {/* Date */}
-                            <div
-                                style={{
-                                    marginBottom:
-                                        '14px'
-                                }}
-                            >
-
-                                <label
-                                    style={{
-                                        display:
-                                            'block',
-                                        marginBottom:
-                                            '6px',
-                                        fontSize:
-                                            '13px',
-                                        fontWeight:
-                                            '600',
-                                        color:
-                                            '#475569'
-                                    }}
-                                >
+                            <div className="mb-3.5">
+                                <label className="block mb-1.5 text-xs sm:text-[13px] font-semibold text-slate-600">
                                     Date
                                 </label>
 
@@ -1730,81 +1127,37 @@ const MonthClosingPage = () => {
                                     value={
                                         settlementForm.settlementDate
                                     }
-                                    onChange={(
-                                        e
-                                    ) => {
+                                    onChange={(e) => {
                                         clearFieldError(
-                                            'settlementDate'
+                                            "settlementDate"
                                         );
 
                                         setSettlementForm({
                                             ...settlementForm,
                                             settlementDate:
-                                                e
-                                                    .target
-                                                    .value
+                                                e.target.value
                                         });
                                     }}
                                     required
-                                    style={{
-                                        width:
-                                            '100%',
-                                        padding:
-                                            '8px 12px',
-                                        borderRadius:
-                                            '6px',
-                                        border:
-                                            fieldErrors.settlementDate
-                                                ? '1px solid #dc2626'
-                                                : '1px solid #cbd5e1',
-                                        fontSize:
-                                            '14px',
-                                        outline:
-                                            'none'
-                                    }}
+                                    className={`w-full px-3 py-2 rounded-md text-sm outline-none border ${
+                                        fieldErrors.settlementDate
+                                            ? "border-red-600 focus:ring-2 focus:ring-red-100"
+                                            : "border-slate-300 focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
+                                    }`}
                                 />
 
                                 {fieldErrors.settlementDate && (
-                                    <div
-                                        style={{
-                                            color:
-                                                '#dc2626',
-                                            fontSize:
-                                                '12px',
-                                            marginTop:
-                                                '4px'
-                                        }}
-                                    >
+                                    <div className="text-red-600 text-xs mt-1">
                                         {
                                             fieldErrors.settlementDate
                                         }
                                     </div>
                                 )}
-
                             </div>
 
                             {/* Note */}
-                            <div
-                                style={{
-                                    marginBottom:
-                                        '20px'
-                                }}
-                            >
-
-                                <label
-                                    style={{
-                                        display:
-                                            'block',
-                                        marginBottom:
-                                            '6px',
-                                        fontSize:
-                                            '13px',
-                                        fontWeight:
-                                            '600',
-                                        color:
-                                            '#475569'
-                                    }}
-                                >
+                            <div className="mb-5">
+                                <label className="block mb-1.5 text-xs sm:text-[13px] font-semibold text-slate-600">
                                     Note
                                 </label>
 
@@ -1813,69 +1166,35 @@ const MonthClosingPage = () => {
                                     value={
                                         settlementForm.note
                                     }
-                                    onChange={(
-                                        e
-                                    ) => {
+                                    onChange={(e) => {
                                         clearFieldError(
-                                            'note'
+                                            "note"
                                         );
 
                                         setSettlementForm({
                                             ...settlementForm,
                                             note:
-                                                e
-                                                    .target
-                                                    .value
+                                                e.target.value
                                         });
                                     }}
-                                    style={{
-                                        width:
-                                            '100%',
-                                        padding:
-                                            '8px 12px',
-                                        borderRadius:
-                                            '6px',
-                                        border:
-                                            fieldErrors.note
-                                                ? '1px solid #dc2626'
-                                                : '1px solid #cbd5e1',
-                                        fontSize:
-                                            '14px',
-                                        outline:
-                                            'none'
-                                    }}
+                                    className={`w-full px-3 py-2 rounded-md text-sm outline-none border ${
+                                        fieldErrors.note
+                                            ? "border-red-600 focus:ring-2 focus:ring-red-100"
+                                            : "border-slate-300 focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
+                                    }`}
                                 />
 
                                 {fieldErrors.note && (
-                                    <div
-                                        style={{
-                                            color:
-                                                '#dc2626',
-                                            fontSize:
-                                                '12px',
-                                            marginTop:
-                                                '4px'
-                                        }}
-                                    >
+                                    <div className="text-red-600 text-xs mt-1">
                                         {
                                             fieldErrors.note
                                         }
                                     </div>
                                 )}
-
                             </div>
 
-                            {/* Modal buttons */}
-                            <div
-                                style={{
-                                    display:
-                                        'flex',
-                                    justifyContent:
-                                        'flex-end',
-                                    gap:
-                                        '10px'
-                                }}
-                            >
+                            {/* Modal Buttons */}
+                            <div className="flex flex-col-reverse sm:flex-row justify-end gap-2.5">
 
                                 <button
                                     type="button"
@@ -1886,91 +1205,27 @@ const MonthClosingPage = () => {
                                         setFieldErrors(
                                             {}
                                         );
-                                        setError(
-                                            ''
-                                        );
+                                        setError("");
                                     }}
-                                    style={{
-                                        padding:
-                                            '8px 14px',
-                                        background:
-                                            '#64748b',
-                                        color:
-                                            '#fff',
-                                        border:
-                                            'none',
-                                        borderRadius:
-                                            '6px',
-                                        cursor:
-                                            'pointer',
-                                        fontSize:
-                                            '14px',
-                                        fontWeight:
-                                            '600'
-                                    }}
+                                    className="w-full sm:w-auto px-4 py-2 bg-slate-500 hover:bg-slate-600 text-white border-none rounded-md cursor-pointer text-sm font-semibold transition-colors"
                                 >
                                     Cancel
                                 </button>
 
                                 <button
                                     type="submit"
-                                    style={{
-                                        padding:
-                                            '8px 14px',
-                                        background:
-                                            '#16a34a',
-                                        color:
-                                            '#fff',
-                                        border:
-                                            'none',
-                                        borderRadius:
-                                            '6px',
-                                        cursor:
-                                            'pointer',
-                                        fontSize:
-                                            '14px',
-                                        fontWeight:
-                                            '600'
-                                    }}
+                                    className="w-full sm:w-auto px-4 py-2 bg-green-600 hover:bg-green-700 text-white border-none rounded-md cursor-pointer text-sm font-semibold transition-colors"
                                 >
                                     Update
                                 </button>
 
                             </div>
-
                         </form>
-
                     </div>
                 </div>
             )}
-
         </div>
     );
-};
-
-/*
- * Reusable table styles.
- * These are presentation-only and do not change business logic.
- */
-const thStyle = {
-    padding: '12px 16px',
-    fontWeight: '600',
-    borderBottom: '1px solid #e2e8f0'
-};
-
-const tdStyle = {
-    padding: '14px 16px',
-    color: '#334155'
-};
-
-const historyThStyle = {
-    padding: '8px 10px',
-    borderBottom: '1px solid #e2e8f0',
-    fontWeight: '600'
-};
-
-const historyTdStyle = {
-    padding: '10px'
 };
 
 export default MonthClosingPage;
