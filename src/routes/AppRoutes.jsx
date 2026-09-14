@@ -1,8 +1,15 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import {
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 
 import LoginPage from "../pages/auth/LoginPage";
 import RegisterPage from "../pages/auth/RegisterPage";
+
 import OwnerDashboard from "../pages/dashboard/OwnerDashboard";
+import OwnerProfile from "../pages/owner/OwnerProfile";
+
 import EmployeesPage from "../pages/employees/EmployeesPage";
 import AttendancePage from "../pages/attendance/AttendancePage";
 import AdvancesPage from "../pages/advances/AdvancesPage";
@@ -16,13 +23,26 @@ export default function AppRoutes() {
     <Routes>
 
       {/* Main / Default Page */}
-      <Route path="/" element={<Navigate to="/register" replace />} />
+      <Route
+        path="/"
+        element={
+          <Navigate
+            to="/register"
+            replace
+          />
+        }
+      />
 
-      {/* Public */}
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
+      <Route
+        path="/login"
+        element={<LoginPage />}
+      />
 
-      {/* Protected */}
+      <Route
+        path="/register"
+        element={<RegisterPage />}
+      />
+
       <Route
         path="/dashboard"
         element={
@@ -73,6 +93,17 @@ export default function AppRoutes() {
           <ProtectedRoute>
             <AppLayout>
               <MonthClosingPage />
+            </AppLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            <AppLayout>
+              <OwnerProfile />
             </AppLayout>
           </ProtectedRoute>
         }

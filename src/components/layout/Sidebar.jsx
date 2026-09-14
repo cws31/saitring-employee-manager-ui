@@ -4,12 +4,12 @@ import {
   CalendarCheck,
   WalletCards,
   Calculator,
+  Settings,
   X,
 } from "lucide-react";
 
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-
 
 const navigation = [
   {
@@ -37,8 +37,12 @@ const navigation = [
     path: "/month-closing",
     icon: Calculator,
   },
+  {
+    name: "Profile",
+    path: "/profile",
+    icon: Settings,
+  },
 ];
-
 
 export default function Sidebar({
   mobileOpen = false,

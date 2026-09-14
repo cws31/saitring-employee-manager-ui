@@ -10,20 +10,15 @@ import authApi from "../api/authApi";
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-
   const [owner, setOwner] = useState(() => {
-
     const savedOwner =
       localStorage.getItem("owner");
 
     try {
-
       return savedOwner
         ? JSON.parse(savedOwner)
         : null;
-
     } catch (error) {
-
       console.error(
         "[AUTH CONTEXT] Failed to parse saved owner:",
         error
@@ -34,20 +29,13 @@ export function AuthProvider({ children }) {
   });
 
   const [token, setToken] = useState(() => {
-
     const savedToken =
       localStorage.getItem("ownerToken");
-
-    console.log(
-      "[AUTH CONTEXT] Existing token:",
-      Boolean(savedToken)
-    );
 
     return savedToken;
   });
 
   useEffect(() => {
-
     if (!token || !owner?.ownerId) {
       return;
     }
@@ -56,74 +44,45 @@ export function AuthProvider({ children }) {
     let cancelled = false;
 
     const loadOwnerLogo = async () => {
-
       try {
-
-        console.log(
-          "[AUTH CONTEXT] Loading actual owner logo. ownerId:",
-          owner.ownerId
-        );
-
         const logoBlob =
-          await authApi.getLogo(owner.ownerId);
+          await authApi.getLogo(
+            owner.ownerId
+          );
 
         if (
           !logoBlob ||
           logoBlob.size === 0
         ) {
-
-          console.log(
-            "[AUTH CONTEXT] No logo found for owner."
-          );
-
           return;
         }
-
-        console.log(
-          "[AUTH CONTEXT] Logo received successfully."
-        );
-
-        console.log(
-          "[AUTH CONTEXT] Logo size:",
-          logoBlob.size
-        );
-
-        console.log(
-          "[AUTH CONTEXT] Logo type:",
-          logoBlob.type
-        );
-
 
         objectUrl =
           URL.createObjectURL(logoBlob);
 
-
         if (cancelled) {
-
           URL.revokeObjectURL(objectUrl);
-
           return;
         }
 
         setOwner((currentOwner) => {
-
           if (!currentOwner) {
             return currentOwner;
           }
 
-          return {
+          const updatedOwner = {
             ...currentOwner,
             logoUrl: objectUrl,
           };
+
+          localStorage.setItem(
+            "owner",
+            JSON.stringify(updatedOwner)
+          );
+
+          return updatedOwner;
         });
-
-
-        console.log(
-          "[AUTH CONTEXT] Actual uploaded logo loaded."
-        );
-
       } catch (error) {
-
         console.warn(
           "[AUTH CONTEXT] Unable to load owner logo:",
           error?.response?.status ||
@@ -133,71 +92,32 @@ export function AuthProvider({ children }) {
       }
     };
 
-
     loadOwnerLogo();
 
-
     return () => {
-
       cancelled = true;
 
       if (objectUrl) {
-
         URL.revokeObjectURL(objectUrl);
       }
     };
-
   }, [token, owner?.ownerId]);
-
-
   const login = async (
     identifier,
     password
   ) => {
-
-    console.log(
-      "=================================================="
-    );
-
-    console.log(
-      "[AUTH CONTEXT] login() called"
-    );
-
-    console.log(
-      "[AUTH CONTEXT] Identifier:",
-      identifier
-    );
-
     try {
-
       const response =
         await authApi.login({
           identifier,
           password,
         });
 
-      console.log(
-        "[AUTH CONTEXT] login() API response:",
-        response
-      );
-
-      console.log(
-        "[AUTH CONTEXT] OTP required:",
-        response?.otpRequired
-      );
-
       return response;
-
     } catch (error) {
-
       console.error(
         "[AUTH CONTEXT] login() failed:",
         error
-      );
-
-      console.error(
-        "[AUTH CONTEXT] login() response:",
-        error?.response
       );
 
       throw error;
@@ -208,60 +128,20 @@ export function AuthProvider({ children }) {
     identifier,
     otp
   ) => {
-
-    console.log(
-      "=================================================="
-    );
-
-    console.log(
-      "[AUTH CONTEXT] verifyOtp() CALLED"
-    );
-
-    console.log(
-      "[AUTH CONTEXT] Identifier:",
-      identifier
-    );
-
-    console.log(
-      "[AUTH CONTEXT] OTP length:",
-      otp?.length
-    );
-
     try {
-
-      console.log(
-        "[AUTH CONTEXT] Calling authApi.verifyOtp()..."
-      );
-
       const response =
         await authApi.verifyOtp({
           identifier,
           otp,
         });
 
-      console.log(
-        "[AUTH CONTEXT] verifyOtp() API response:",
-        response
-      );
-
-      console.log(
-        "[AUTH CONTEXT] Token returned:",
-        Boolean(response?.token)
-      );
-
       if (!response?.token) {
-
-        console.error(
-          "[AUTH CONTEXT] Backend response does not contain token."
-        );
-
         throw new Error(
           "Authentication token was not returned."
         );
       }
 
       const ownerData = {
-
         ownerId:
           response.ownerId,
 
@@ -281,20 +161,9 @@ export function AuthProvider({ children }) {
           null,
       };
 
-
-      console.log(
-        "[AUTH CONTEXT] Owner data:",
-        ownerData
-      );
-
-
       localStorage.setItem(
         "ownerToken",
         response.token
-      );
-
-      console.log(
-        "[AUTH CONTEXT] JWT saved to localStorage."
       );
 
       localStorage.setItem(
@@ -302,80 +171,42 @@ export function AuthProvider({ children }) {
         JSON.stringify(ownerData)
       );
 
-      console.log(
-        "[AUTH CONTEXT] Owner saved to localStorage."
-      );
-
       setToken(response.token);
-
       setOwner(ownerData);
 
-
-      console.log(
-        "[AUTH CONTEXT] React authentication state updated."
-      );
-
-      console.log(
-        "[AUTH CONTEXT] Logo will now be loaded from backend."
-      );
-
-      console.log(
-        "[AUTH CONTEXT] isAuthenticated should now be TRUE."
-      );
-
-      console.log(
-        "=================================================="
-      );
-
-
       return response;
-
     } catch (error) {
-
       console.error(
-        "=================================================="
-      );
-
-      console.error(
-        "[AUTH CONTEXT] verifyOtp() FAILED"
-      );
-
-      console.error(
-        "[AUTH CONTEXT] Error:",
+        "[AUTH CONTEXT] verifyOtp() failed:",
         error
-      );
-
-      console.error(
-        "[AUTH CONTEXT] Error message:",
-        error?.message
-      );
-
-      console.error(
-        "[AUTH CONTEXT] HTTP status:",
-        error?.response?.status
-      );
-
-      console.error(
-        "[AUTH CONTEXT] Response data:",
-        error?.response?.data
-      );
-
-      console.error(
-        "=================================================="
       );
 
       throw error;
     }
   };
 
+  const updateOwner = async (
+    updatedOwner
+  ) => {
+    if (!updatedOwner) {
+      return;
+    }
 
+    setOwner((currentOwner) => {
+      const newOwner = {
+        ...currentOwner,
+        ...updatedOwner,
+      };
+
+      localStorage.setItem(
+        "owner",
+        JSON.stringify(newOwner)
+      );
+
+      return newOwner;
+    });
+  };
   const logout = () => {
-
-    console.log(
-      "[AUTH CONTEXT] Logging out..."
-    );
-
-
     localStorage.removeItem(
       "ownerToken"
     );
@@ -384,21 +215,12 @@ export function AuthProvider({ children }) {
       "owner"
     );
 
-
     setToken(null);
-
     setOwner(null);
-
-
-    console.log(
-      "[AUTH CONTEXT] Logout completed."
-    );
   };
-
 
   const isAuthenticated =
     Boolean(token);
-
 
   return (
     <AuthContext.Provider
@@ -408,6 +230,7 @@ export function AuthProvider({ children }) {
         isAuthenticated,
         login,
         verifyOtp,
+        updateOwner,
         logout,
       }}
     >
