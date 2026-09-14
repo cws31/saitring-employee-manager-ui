@@ -1,6 +1,7 @@
 import {
   createContext,
   useContext,
+  useEffect,
   useState,
 } from "react";
 
@@ -16,9 +17,11 @@ export function AuthProvider({ children }) {
       localStorage.getItem("owner");
 
     try {
+
       return savedOwner
         ? JSON.parse(savedOwner)
         : null;
+
     } catch (error) {
 
       console.error(
@@ -29,7 +32,6 @@ export function AuthProvider({ children }) {
       return null;
     }
   });
-
 
   const [token, setToken] = useState(() => {
 
@@ -44,9 +46,112 @@ export function AuthProvider({ children }) {
     return savedToken;
   });
 
+  useEffect(() => {
+
+    if (!token || !owner?.ownerId) {
+      return;
+    }
+
+    let objectUrl = null;
+    let cancelled = false;
+
+    const loadOwnerLogo = async () => {
+
+      try {
+
+        console.log(
+          "[AUTH CONTEXT] Loading actual owner logo. ownerId:",
+          owner.ownerId
+        );
+
+        const logoBlob =
+          await authApi.getLogo(owner.ownerId);
+
+        if (
+          !logoBlob ||
+          logoBlob.size === 0
+        ) {
+
+          console.log(
+            "[AUTH CONTEXT] No logo found for owner."
+          );
+
+          return;
+        }
+
+        console.log(
+          "[AUTH CONTEXT] Logo received successfully."
+        );
+
+        console.log(
+          "[AUTH CONTEXT] Logo size:",
+          logoBlob.size
+        );
+
+        console.log(
+          "[AUTH CONTEXT] Logo type:",
+          logoBlob.type
+        );
+
+
+        objectUrl =
+          URL.createObjectURL(logoBlob);
+
+
+        if (cancelled) {
+
+          URL.revokeObjectURL(objectUrl);
+
+          return;
+        }
+
+        setOwner((currentOwner) => {
+
+          if (!currentOwner) {
+            return currentOwner;
+          }
+
+          return {
+            ...currentOwner,
+            logoUrl: objectUrl,
+          };
+        });
+
+
+        console.log(
+          "[AUTH CONTEXT] Actual uploaded logo loaded."
+        );
+
+      } catch (error) {
+
+        console.warn(
+          "[AUTH CONTEXT] Unable to load owner logo:",
+          error?.response?.status ||
+            error?.message ||
+            error
+        );
+      }
+    };
+
+
+    loadOwnerLogo();
+
+
+    return () => {
+
+      cancelled = true;
+
+      if (objectUrl) {
+
+        URL.revokeObjectURL(objectUrl);
+      }
+    };
+
+  }, [token, owner?.ownerId]);
+
 
   const login = async (
-    username,
+    identifier,
     password
   ) => {
 
@@ -59,15 +164,15 @@ export function AuthProvider({ children }) {
     );
 
     console.log(
-      "[AUTH CONTEXT] Username:",
-      username
+      "[AUTH CONTEXT] Identifier:",
+      identifier
     );
 
     try {
 
       const response =
         await authApi.login({
-          username,
+          identifier,
           password,
         });
 
@@ -99,9 +204,8 @@ export function AuthProvider({ children }) {
     }
   };
 
-
   const verifyOtp = async (
-    username,
+    identifier,
     otp
   ) => {
 
@@ -114,8 +218,8 @@ export function AuthProvider({ children }) {
     );
 
     console.log(
-      "[AUTH CONTEXT] Username:",
-      username
+      "[AUTH CONTEXT] Identifier:",
+      identifier
     );
 
     console.log(
@@ -131,7 +235,7 @@ export function AuthProvider({ children }) {
 
       const response =
         await authApi.verifyOtp({
-          username,
+          identifier,
           otp,
         });
 
@@ -144,7 +248,6 @@ export function AuthProvider({ children }) {
         "[AUTH CONTEXT] Token returned:",
         Boolean(response?.token)
       );
-
 
       if (!response?.token) {
 
@@ -168,17 +271,22 @@ export function AuthProvider({ children }) {
         organizationName:
           response.organizationName,
 
-        username:
-          response.username,
+        email:
+          response.email,
+
+        mobileNumber:
+          response.mobileNumber,
 
         logoUrl:
-          response.logoUrl || null,
+          null,
       };
+
 
       console.log(
         "[AUTH CONTEXT] Owner data:",
         ownerData
       );
+
 
       localStorage.setItem(
         "ownerToken",
@@ -198,13 +306,17 @@ export function AuthProvider({ children }) {
         "[AUTH CONTEXT] Owner saved to localStorage."
       );
 
-
       setToken(response.token);
 
       setOwner(ownerData);
 
+
       console.log(
         "[AUTH CONTEXT] React authentication state updated."
+      );
+
+      console.log(
+        "[AUTH CONTEXT] Logo will now be loaded from backend."
       );
 
       console.log(
@@ -214,6 +326,7 @@ export function AuthProvider({ children }) {
       console.log(
         "=================================================="
       );
+
 
       return response;
 
@@ -255,11 +368,13 @@ export function AuthProvider({ children }) {
     }
   };
 
+
   const logout = () => {
 
     console.log(
       "[AUTH CONTEXT] Logging out..."
     );
+
 
     localStorage.removeItem(
       "ownerToken"
@@ -269,8 +384,11 @@ export function AuthProvider({ children }) {
       "owner"
     );
 
+
     setToken(null);
+
     setOwner(null);
+
 
     console.log(
       "[AUTH CONTEXT] Logout completed."
@@ -280,6 +398,7 @@ export function AuthProvider({ children }) {
 
   const isAuthenticated =
     Boolean(token);
+
 
   return (
     <AuthContext.Provider
@@ -296,7 +415,6 @@ export function AuthProvider({ children }) {
     </AuthContext.Provider>
   );
 }
-
 
 export function useAuth() {
   return useContext(AuthContext);

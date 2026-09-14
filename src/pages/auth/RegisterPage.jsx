@@ -6,7 +6,7 @@ import {
   Mail,
   Upload,
   User,
-  UserCheck,
+  Phone,
   Eye,
   EyeOff,
   CheckCircle2,
@@ -21,7 +21,7 @@ export default function RegisterPage() {
     ownerName: "",
     organizationName: "",
     email: "",
-    username: "",
+    mobileNumber: "",
     password: "",
   });
 
@@ -69,9 +69,12 @@ export default function RegisterPage() {
     const ownerName = form.ownerName.trim();
     const organizationName = form.organizationName.trim();
     const email = form.email.trim();
-    const username = form.username.trim();
+    const mobileNumber = form.mobileNumber.trim();
     const password = form.password;
 
+    /*
+     * Owner Name
+     */
     if (!ownerName) {
       return "Owner name is required.";
     }
@@ -80,6 +83,9 @@ export default function RegisterPage() {
       return "Owner name must be between 2 and 100 characters.";
     }
 
+    /*
+     * Organization Name
+     */
     if (!organizationName) {
       return "Organization name is required.";
     }
@@ -91,40 +97,57 @@ export default function RegisterPage() {
       return "Organization name must be between 2 and 150 characters.";
     }
 
+    /*
+     * Email
+     */
     if (!email) {
       return "Email is required.";
+    }
+
+    if (email.length > 150) {
+      return "Email must not exceed 150 characters.";
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     if (!emailRegex.test(email)) {
-      return "Please enter a valid email address.";
+      return "Please provide a valid email address.";
     }
 
-    if (!username) {
-      return "Username is required.";
+    /*
+     * Mobile Number
+     *
+     * Backend requirement:
+     *
+     * ^\+[1-9]\d{7,14}$
+     *
+     * Example:
+     * +919876543210
+     */
+    if (!mobileNumber) {
+      return "Mobile number is required.";
     }
 
-    if (username.length < 4 || username.length > 50) {
-      return "Username must be between 4 and 50 characters.";
+    const mobileRegex = /^\+[1-9]\d{7,14}$/;
+
+    if (!mobileRegex.test(mobileNumber)) {
+      return "Mobile number must be in international format, for example +919876543210.";
     }
 
-    if (!/^[a-zA-Z0-9_]+$/.test(username)) {
-      return "Username can contain only letters, numbers and underscores.";
-    }
-
+    /*
+     * Password
+     */
     if (!password) {
       return "Password is required.";
     }
 
-    if (password.length < 8) {
-      return "Password must contain at least 8 characters.";
+    if (password.length < 8 || password.length > 100) {
+      return "Password must be between 8 and 100 characters.";
     }
 
-    if (!/^(?=.*[A-Za-z])(?=.*\d).{8,}$/.test(password)) {
-      return "Password must contain at least one letter and one number.";
-    }
-
+    /*
+     * Logo
+     */
     if (!logo) {
       return "Organization logo is required.";
     }
@@ -147,16 +170,27 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
+      /*
+       * This object MUST match:
+       *
+       * OwnerRegistrationRequest
+       */
       const requestData = {
         ownerName: form.ownerName.trim(),
         organizationName: form.organizationName.trim(),
         email: form.email.trim(),
-        username: form.username.trim(),
+        mobileNumber: form.mobileNumber.trim(),
         password: form.password,
       };
 
+      /*
+       * Multipart request
+       */
       const formData = new FormData();
 
+      /*
+       * Convert JSON request into application/json part
+       */
       const requestBlob = new Blob(
         [JSON.stringify(requestData)],
         {
@@ -164,11 +198,20 @@ export default function RegisterPage() {
         }
       );
 
+      /*
+       * Backend:
+       *
+       * @RequestPart("request")
+       * @RequestPart("logo")
+       */
       formData.append("request", requestBlob);
       formData.append("logo", logo);
 
       await authApi.register(formData);
 
+      /*
+       * Registration successful
+       */
       navigate("/login");
     } catch (err) {
       console.error("REGISTRATION ERROR:", err);
@@ -428,38 +471,39 @@ export default function RegisterPage() {
 
                 </div>
 
-                {/* Username */}
+                {/* Mobile Number */}
                 <div>
 
                   <label
-                    htmlFor="username"
+                    htmlFor="mobileNumber"
                     className="mb-2 block text-sm font-medium text-slate-700"
                   >
-                    Username
+                    Mobile number
                   </label>
 
                   <div className="relative">
 
-                    <UserCheck
+                    <Phone
                       size={18}
                       className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
                     />
 
                     <input
-                      id="username"
-                      name="username"
-                      type="text"
-                      value={form.username}
+                      id="mobileNumber"
+                      name="mobileNumber"
+                      type="tel"
+                      value={form.mobileNumber}
                       onChange={handleChange}
-                      autoComplete="username"
-                      placeholder="Choose a username"
+                      autoComplete="tel"
+                      placeholder="+919876543210"
+                      maxLength={16}
                       className="h-11 w-full rounded-lg border border-slate-300 bg-white pl-11 pr-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-500 focus:ring-2 focus:ring-slate-200"
                     />
 
                   </div>
 
                   <p className="mt-1.5 text-xs text-slate-400">
-                    Use 4–50 characters. Letters, numbers and underscores only.
+                    Use international format, for example +919876543210.
                   </p>
 
                 </div>
@@ -518,7 +562,7 @@ export default function RegisterPage() {
                   </div>
 
                   <p className="mt-1.5 text-xs text-slate-400">
-                    Minimum 8 characters with at least one letter and one number.
+                    Password must be between 8 and 100 characters.
                   </p>
 
                 </div>

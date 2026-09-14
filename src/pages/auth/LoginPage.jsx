@@ -21,7 +21,7 @@ export default function LoginPage() {
   const [step, setStep] = useState("login");
 
   const [form, setForm] = useState({
-    username: "",
+    identifier: "",
     password: "",
   });
 
@@ -34,16 +34,9 @@ export default function LoginPage() {
 
   const otpInputRef = useRef(null);
 
-
-
   useEffect(() => {
-    console.log(
-      "[LOGIN PAGE] Current step:",
-      step
-    );
+    console.log("[LOGIN PAGE] Current step:", step);
   }, [step]);
-
-
 
   const handleChange = (e) => {
     setForm({
@@ -52,30 +45,26 @@ export default function LoginPage() {
     });
   };
 
-
-
   const handleLogin = async (e) => {
     e.preventDefault();
 
-    console.log(
-      "[LOGIN PAGE] Login form submitted"
-    );
+    console.log("[LOGIN PAGE] Login form submitted");
 
     console.log(
-      "[LOGIN PAGE] Username:",
-      form.username
+      "[LOGIN PAGE] Identifier:",
+      form.identifier
     );
 
     setError("");
     setSuccess("");
 
-    if (!form.username.trim() || !form.password) {
+    if (!form.identifier.trim() || !form.password) {
       console.warn(
-        "[LOGIN PAGE] Username/password missing"
+        "[LOGIN PAGE] Identifier/password missing"
       );
 
       setError(
-        "Username and password are required."
+        "Email or mobile number and password are required."
       );
 
       return;
@@ -89,7 +78,7 @@ export default function LoginPage() {
       );
 
       const response = await login(
-        form.username.trim(),
+        form.identifier.trim(),
         form.password
       );
 
@@ -107,7 +96,7 @@ export default function LoginPage() {
 
         setSuccess(
           response.message ||
-            "A verification code has been sent to your registered email."
+            "A verification code has been sent to your registered contact."
         );
 
         setOtp("");
@@ -144,7 +133,7 @@ export default function LoginPage() {
 
       if (err.response?.status === 401) {
         setError(
-          "Invalid username or password."
+          "Invalid email/mobile number or password."
         );
       } else if (err.response?.data?.message) {
         setError(
@@ -168,7 +157,6 @@ export default function LoginPage() {
     }
   };
 
-
   const handleOtpChange = (e) => {
     const value = e.target.value.replace(
       /\D/g,
@@ -186,7 +174,6 @@ export default function LoginPage() {
     }
   };
 
-
   const handleVerifyOtp = async (e) => {
     e.preventDefault();
 
@@ -199,8 +186,8 @@ export default function LoginPage() {
     );
 
     console.log(
-      "[LOGIN PAGE] Username:",
-      form.username
+      "[LOGIN PAGE] Identifier:",
+      form.identifier
     );
 
     console.log(
@@ -231,7 +218,7 @@ export default function LoginPage() {
       );
 
       const response = await verifyOtp(
-        form.username.trim(),
+        form.identifier.trim(),
         otp
       );
 
@@ -351,6 +338,7 @@ export default function LoginPage() {
     setError("");
     setSuccess("");
   };
+
   useEffect(() => {
     if (step === "otp") {
       console.log(
@@ -369,12 +357,12 @@ export default function LoginPage() {
     }
   }, [step]);
 
-
   return (
     <div className="min-h-dvh bg-slate-100 px-3 py-3 sm:px-5 sm:py-5 lg:px-8 lg:py-8">
 
       <div className="mx-auto flex min-h-[calc(100dvh-1.5rem)] w-full max-w-7xl overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm sm:min-h-[calc(100dvh-2.5rem)] lg:min-h-[calc(100dvh-4rem)]">
 
+        {/* LEFT PANEL */}
 
         <div className="relative hidden w-[42%] shrink-0 overflow-hidden bg-slate-900 lg:flex lg:flex-col lg:justify-between lg:p-10 xl:p-14">
 
@@ -444,7 +432,7 @@ export default function LoginPage() {
 
               {step === "login"
                 ? "Manage employees, attendance, advances and monthly closing from one centralized workspace."
-                : "We have sent a one-time verification code to your registered email address to securely complete your sign in."}
+                : "We have sent a one-time verification code to your registered contact to securely complete your sign in."}
 
             </p>
 
@@ -458,6 +446,8 @@ export default function LoginPage() {
           </div>
 
         </div>
+
+        {/* RIGHT PANEL */}
 
         <div className="flex flex-1 items-start justify-center bg-slate-50/80 px-4 py-4 sm:items-center sm:px-8 sm:py-10 lg:px-10 xl:px-16">
 
@@ -488,6 +478,8 @@ export default function LoginPage() {
               </div>
 
             </div>
+
+            {/* LOGIN */}
 
             {step === "login" && (
               <>
@@ -524,15 +516,15 @@ export default function LoginPage() {
                     className="space-y-5"
                   >
 
-                    {/* USERNAME */}
+                    {/* EMAIL / MOBILE */}
 
                     <div>
 
                       <label
-                        htmlFor="username"
+                        htmlFor="identifier"
                         className="mb-2 block text-sm font-medium text-slate-700"
                       >
-                        Username
+                        Email or mobile number
                       </label>
 
                       <div className="relative">
@@ -543,18 +535,22 @@ export default function LoginPage() {
                         />
 
                         <input
-                          id="username"
-                          name="username"
+                          id="identifier"
+                          name="identifier"
                           type="text"
-                          value={form.username}
+                          value={form.identifier}
                           onChange={handleChange}
                           autoComplete="username"
                           autoFocus
-                          placeholder="Enter your username"
+                          placeholder="Enter email or mobile number"
                           className="h-11 w-full rounded-lg border border-slate-300 bg-white pl-11 pr-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-500 focus:ring-2 focus:ring-slate-200"
                         />
 
                       </div>
+
+                      <p className="mt-1.5 text-xs text-slate-400">
+                        You can sign in using your registered email or mobile number.
+                      </p>
 
                     </div>
 
@@ -662,6 +658,7 @@ export default function LoginPage() {
               </>
             )}
 
+            {/* OTP */}
 
             {step === "otp" && (
               <>
@@ -673,12 +670,11 @@ export default function LoginPage() {
                   </p>
 
                   <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
-                    Verify your email
+                    Verify your identity
                   </h1>
 
                   <p className="mt-1.5 text-sm leading-6 text-slate-500">
-                    Enter the 6-digit verification code sent to
-                    your registered email address.
+                    Enter the 6-digit verification code sent to your registered contact.
                   </p>
 
                 </div>
@@ -731,7 +727,7 @@ export default function LoginPage() {
 
                     </div>
 
-                    {/* USERNAME */}
+                    {/* IDENTIFIER */}
 
                     <div className="rounded-xl bg-slate-50 px-4 py-3 text-center">
 
@@ -740,7 +736,7 @@ export default function LoginPage() {
                       </p>
 
                       <p className="mt-1 truncate text-sm font-semibold text-slate-700">
-                        {form.username}
+                        {form.identifier}
                       </p>
 
                     </div>
