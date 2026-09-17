@@ -10,7 +10,6 @@ import {
   Lock,
   MailCheck,
   User,
-  Phone,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 
@@ -52,8 +51,11 @@ export default function LoginPage() {
   const handleIdentifierChange = (e) => {
     const value = e.target.value;
 
-    // If the user is entering a mobile number,
-    // allow only digits and maximum 10 digits.
+    // Keep existing logic:
+    // Mobile numbers are still accepted internally.
+    // However, the UI now asks the user to use email
+    // because OTP verification is email-only.
+
     if (/^\d*$/.test(value)) {
       setForm((prev) => ({
         ...prev,
@@ -62,7 +64,6 @@ export default function LoginPage() {
       return;
     }
 
-    // Otherwise keep email input working normally.
     setForm((prev) => ({
       ...prev,
       identifier: value,
@@ -88,7 +89,7 @@ export default function LoginPage() {
       );
 
       setError(
-        "Email or mobile number and password are required."
+        "Email and password are required."
       );
 
       return;
@@ -101,6 +102,7 @@ export default function LoginPage() {
         "[LOGIN PAGE] Calling AuthContext.login()..."
       );
 
+      // Existing logic kept unchanged.
       // If identifier contains only digits,
       // automatically add +91 before sending to backend.
       const identifier = /^\d+$/.test(form.identifier.trim())
@@ -126,7 +128,7 @@ export default function LoginPage() {
 
         setSuccess(
           response.message ||
-            "A verification code has been sent to your registered contact."
+            "A verification code has been sent to your registered email."
         );
 
         setOtp("");
@@ -163,7 +165,7 @@ export default function LoginPage() {
 
       if (err.response?.status === 401) {
         setError(
-          "Invalid email/mobile number or password."
+          "Invalid email or password."
         );
       } else if (err.response?.data?.message) {
         setError(
@@ -244,7 +246,7 @@ export default function LoginPage() {
         "[LOGIN PAGE] Calling AuthContext.verifyOtp()..."
       );
 
-      // Use the same identifier format used during login.
+      // Existing identifier logic kept unchanged.
       const identifier = /^\d+$/.test(form.identifier.trim())
         ? `+91${form.identifier.trim()}`
         : form.identifier.trim();
@@ -598,7 +600,7 @@ export default function LoginPage() {
             >
               {step === "login"
                 ? "Sign in to access your organization dashboard."
-                : "Enter the verification code sent to your registered contact."}
+                : "Enter the verification code sent to your registered email."}
             </p>
 
           </div>
@@ -716,7 +718,7 @@ export default function LoginPage() {
                   className="space-y-5 p-5 sm:p-7"
                 >
 
-                  {/* Identifier */}
+                  {/* Email */}
 
                   <div>
 
@@ -730,61 +732,23 @@ export default function LoginPage() {
                         text-slate-700
                       "
                     >
-                      Email or mobile number
+                      Email
                     </label>
 
                     <div className="relative">
 
-                      {/* Icon */}
-
-                      {/^\d*$/.test(form.identifier) ? (
-                        <Phone
-                          size={18}
-                          strokeWidth={1.8}
-                          className="
-                            pointer-events-none
-                            absolute
-                            left-3.5
-                            top-1/2
-                            -translate-y-1/2
-                            text-slate-400
-                          "
-                        />
-                      ) : (
-                        <User
-                          size={18}
-                          strokeWidth={1.8}
-                          className="
-                            pointer-events-none
-                            absolute
-                            left-3.5
-                            top-1/2
-                            -translate-y-1/2
-                            text-slate-400
-                          "
-                        />
-                      )}
-
-                      {/* Fixed +91 for mobile */}
-
-                      {/^\d*$/.test(form.identifier) && (
-                        <span
-                          className="
-                            absolute
-                            left-11
-                            top-1/2
-                            -translate-y-1/2
-                            border-r
-                            border-slate-200
-                            pr-3
-                            text-sm
-                            font-semibold
-                            text-slate-700
-                          "
-                        >
-                          +91
-                        </span>
-                      )}
+                      <User
+                        size={18}
+                        strokeWidth={1.8}
+                        className="
+                          pointer-events-none
+                          absolute
+                          left-3.5
+                          top-1/2
+                          -translate-y-1/2
+                          text-slate-400
+                        "
+                      />
 
                       <input
                         id="identifier"
@@ -794,28 +758,16 @@ export default function LoginPage() {
                         onChange={handleIdentifierChange}
                         autoComplete="username"
                         autoFocus
-                        placeholder={
-                          /^\d*$/.test(form.identifier)
-                            ? "9876543210"
-                            : "Enter email or mobile number"
-                        }
-                        inputMode={
-                          /^\d*$/.test(form.identifier)
-                            ? "numeric"
-                            : "text"
-                        }
-                        className={`
+                        placeholder="Enter your email"
+                        inputMode="email"
+                        className="
                           h-12
                           w-full
                           rounded-xl
                           border
                           border-slate-300
                           bg-white
-                          ${
-                            /^\d*$/.test(form.identifier)
-                              ? "pl-[88px]"
-                              : "pl-11"
-                          }
+                          pl-11
                           pr-4
                           text-sm
                           text-slate-900
@@ -826,14 +778,46 @@ export default function LoginPage() {
                           focus:border-slate-700
                           focus:ring-4
                           focus:ring-slate-100
-                        `}
+                        "
                       />
 
                     </div>
 
-                    <p className="mt-1.5 text-xs leading-5 text-slate-400">
-                      Use your registered email or 10-digit mobile number.
-                    </p>
+                    {/* Mobile number warning */}
+
+                    {/^\d+$/.test(form.identifier.trim()) &&
+                      form.identifier.trim().length > 0 && (
+                        <p
+                          className="
+                            mt-2
+                            text-xs
+                            leading-5
+                            text-amber-600
+                          "
+                        >
+                          Please use your registered email
+                          address. OTP verification is
+                          currently available through email
+                          only, not mobile number.
+                        </p>
+                      )}
+
+                    {/* Email helper text */}
+
+                    {!/^\d+$/.test(form.identifier.trim()) &&
+                      form.identifier.trim().length > 0 && (
+                        <p
+                          className="
+                            mt-1.5
+                            text-xs
+                            leading-5
+                            text-slate-400
+                          "
+                        >
+                          Enter the email address registered
+                          with your account.
+                        </p>
+                      )}
 
                   </div>
 
@@ -1203,7 +1187,7 @@ export default function LoginPage() {
 
                   </div>
 
-                  {/* Identifier */}
+                  {/* Email */}
 
                   <div
                     className="
@@ -1216,13 +1200,11 @@ export default function LoginPage() {
                   >
 
                     <p className="text-xs text-slate-400">
-                      Verification requested for
+                      Verification code sent to your registered email
                     </p>
 
                     <p className="mt-1 truncate text-sm font-semibold text-slate-700">
-                      {/^\d+$/.test(form.identifier)
-                        ? `+91${form.identifier}`
-                        : form.identifier}
+                      {form.identifier}
                     </p>
 
                   </div>
