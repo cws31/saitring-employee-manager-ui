@@ -34,7 +34,6 @@ export default function RegisterPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-
   const handleChange = (e) => {
     const { name, value } = e.target;
 
@@ -43,7 +42,6 @@ export default function RegisterPage() {
       [name]: value,
     }));
   };
-
 
   const handleLogoChange = (e) => {
     const file = e.target.files?.[0] || null;
@@ -69,7 +67,6 @@ export default function RegisterPage() {
     setLogoPreview(previewUrl);
   };
 
-
   useEffect(() => {
     return () => {
       if (logoPreview) {
@@ -78,14 +75,12 @@ export default function RegisterPage() {
     };
   }, [logoPreview]);
 
-
   const validateForm = () => {
     const ownerName = form.ownerName.trim();
     const organizationName = form.organizationName.trim();
     const email = form.email.trim();
     const mobileNumber = form.mobileNumber.trim();
     const password = form.password;
-
 
     if (!ownerName) {
       return "Owner name is required.";
@@ -94,7 +89,6 @@ export default function RegisterPage() {
     if (ownerName.length < 2 || ownerName.length > 100) {
       return "Owner name must be between 2 and 100 characters.";
     }
-
 
     if (!organizationName) {
       return "Organization name is required.";
@@ -125,10 +119,12 @@ export default function RegisterPage() {
       return "Mobile number is required.";
     }
 
-    const mobileRegex = /^\+[1-9]\d{7,14}$/;
+    // User enters only the 10-digit Indian mobile number.
+    // +91 is added automatically before sending to the backend.
+    const mobileRegex = /^[6-9]\d{9}$/;
 
     if (!mobileRegex.test(mobileNumber)) {
-      return "Mobile number must be in international format, for example +919876543210.";
+      return "Please enter a valid 10-digit mobile number.";
     }
 
     if (!password) {
@@ -146,7 +142,6 @@ export default function RegisterPage() {
     return null;
   };
 
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -162,16 +157,17 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      
       const requestData = {
         ownerName: form.ownerName.trim(),
         organizationName: form.organizationName.trim(),
         email: form.email.trim(),
-        mobileNumber: form.mobileNumber.trim(),
+
+        // +91 is automatically added here.
+        mobileNumber: `+91${form.mobileNumber.trim()}`,
+
         password: form.password,
       };
 
-     
       const formData = new FormData();
 
       const requestBlob = new Blob(
@@ -181,13 +177,11 @@ export default function RegisterPage() {
         }
       );
 
-      
       formData.append("request", requestBlob);
       formData.append("logo", logo);
 
       await authApi.register(formData);
 
-     
       navigate("/login");
     } catch (err) {
       console.error("REGISTRATION ERROR:", err);
@@ -213,7 +207,6 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-dvh bg-slate-50">
-
 
       <header
         className="
@@ -706,6 +699,8 @@ export default function RegisterPage() {
                 </div>
               </div>
 
+              {/* Mobile Number */}
+
               <div>
                 <label
                   htmlFor="mobileNumber"
@@ -735,15 +730,44 @@ export default function RegisterPage() {
                     "
                   />
 
+                  {/* Fixed +91 prefix */}
+
+                  <span
+                    className="
+                      absolute
+                      left-11
+                      top-1/2
+                      -translate-y-1/2
+                      border-r
+                      border-slate-200
+                      pr-3
+                      text-sm
+                      font-semibold
+                      text-slate-700
+                    "
+                  >
+                    +91
+                  </span>
+
                   <input
                     id="mobileNumber"
                     name="mobileNumber"
                     type="tel"
                     value={form.mobileNumber}
-                    onChange={handleChange}
+                    onChange={(e) => {
+                      const value = e.target.value
+                        .replace(/\D/g, "")
+                        .slice(0, 10);
+
+                      setForm((prev) => ({
+                        ...prev,
+                        mobileNumber: value,
+                      }));
+                    }}
                     autoComplete="tel"
-                    placeholder="+919876543210"
-                    maxLength={16}
+                    placeholder="9876543210"
+                    maxLength={10}
+                    inputMode="numeric"
                     className="
                       h-12
                       w-full
@@ -751,7 +775,7 @@ export default function RegisterPage() {
                       border
                       border-slate-300
                       bg-white
-                      pl-11
+                      pl-[88px]
                       pr-4
                       text-sm
                       text-slate-900
@@ -768,7 +792,7 @@ export default function RegisterPage() {
                 </div>
 
                 <p className="mt-1.5 text-xs text-slate-400">
-                  Use international format, for example +919876543210.
+                  Enter your 10-digit mobile number.
                 </p>
               </div>
 

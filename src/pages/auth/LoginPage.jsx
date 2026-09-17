@@ -10,6 +10,7 @@ import {
   Lock,
   MailCheck,
   User,
+  Phone,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 
@@ -35,19 +36,38 @@ export default function LoginPage() {
 
   const otpInputRef = useRef(null);
 
-
   useEffect(() => {
     console.log("[LOGIN PAGE] Current step:", step);
   }, [step]);
 
-
   const handleChange = (e) => {
+    const { name, value } = e.target;
+
     setForm({
       ...form,
-      [e.target.name]: e.target.value,
+      [name]: value,
     });
   };
 
+  const handleIdentifierChange = (e) => {
+    const value = e.target.value;
+
+    // If the user is entering a mobile number,
+    // allow only digits and maximum 10 digits.
+    if (/^\d*$/.test(value)) {
+      setForm((prev) => ({
+        ...prev,
+        identifier: value.slice(0, 10),
+      }));
+      return;
+    }
+
+    // Otherwise keep email input working normally.
+    setForm((prev) => ({
+      ...prev,
+      identifier: value,
+    }));
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -81,8 +101,14 @@ export default function LoginPage() {
         "[LOGIN PAGE] Calling AuthContext.login()..."
       );
 
+      // If identifier contains only digits,
+      // automatically add +91 before sending to backend.
+      const identifier = /^\d+$/.test(form.identifier.trim())
+        ? `+91${form.identifier.trim()}`
+        : form.identifier.trim();
+
       const response = await login(
-        form.identifier.trim(),
+        identifier,
         form.password
       );
 
@@ -161,7 +187,6 @@ export default function LoginPage() {
     }
   };
 
-
   const handleOtpChange = (e) => {
     const value = e.target.value.replace(/\D/g, "");
 
@@ -175,7 +200,6 @@ export default function LoginPage() {
       setError("");
     }
   };
-
 
   const handleVerifyOtp = async (e) => {
     e.preventDefault();
@@ -220,8 +244,13 @@ export default function LoginPage() {
         "[LOGIN PAGE] Calling AuthContext.verifyOtp()..."
       );
 
+      // Use the same identifier format used during login.
+      const identifier = /^\d+$/.test(form.identifier.trim())
+        ? `+91${form.identifier.trim()}`
+        : form.identifier.trim();
+
       const response = await verifyOtp(
-        form.identifier.trim(),
+        identifier,
         otp
       );
 
@@ -331,7 +360,6 @@ export default function LoginPage() {
     }
   };
 
-
   const handleBackToLogin = () => {
     console.log(
       "[LOGIN PAGE] Returning to login screen."
@@ -342,7 +370,6 @@ export default function LoginPage() {
     setError("");
     setSuccess("");
   };
-
 
   useEffect(() => {
     if (step === "otp") {
@@ -397,6 +424,7 @@ export default function LoginPage() {
         >
 
           {/* Brand */}
+
           <Link
             to="/"
             className="
@@ -463,6 +491,7 @@ export default function LoginPage() {
           </Link>
 
           {/* Register */}
+
           <Link
             to="/register"
             className="
@@ -508,6 +537,7 @@ export default function LoginPage() {
           <div className="mb-6 text-center sm:mb-8">
 
             {/* Badge */}
+
             <div
               className="
                 mx-auto
@@ -577,6 +607,7 @@ export default function LoginPage() {
             <>
 
               {/* Error */}
+
               {error && (
                 <div
                   role="alert"
@@ -621,6 +652,7 @@ export default function LoginPage() {
               )}
 
               {/* Login Card */}
+
               <div
                 className="
                   overflow-hidden
@@ -634,6 +666,7 @@ export default function LoginPage() {
               >
 
                 {/* Card Header */}
+
                 <div
                   className="
                     border-b
@@ -677,12 +710,14 @@ export default function LoginPage() {
                 </div>
 
                 {/* Login Form */}
+
                 <form
                   onSubmit={handleLogin}
                   className="space-y-5 p-5 sm:p-7"
                 >
 
                   {/* Identifier */}
+
                   <div>
 
                     <label
@@ -700,36 +735,87 @@ export default function LoginPage() {
 
                     <div className="relative">
 
-                      <User
-                        size={18}
-                        strokeWidth={1.8}
-                        className="
-                          pointer-events-none
-                          absolute
-                          left-3.5
-                          top-1/2
-                          -translate-y-1/2
-                          text-slate-400
-                        "
-                      />
+                      {/* Icon */}
+
+                      {/^\d*$/.test(form.identifier) ? (
+                        <Phone
+                          size={18}
+                          strokeWidth={1.8}
+                          className="
+                            pointer-events-none
+                            absolute
+                            left-3.5
+                            top-1/2
+                            -translate-y-1/2
+                            text-slate-400
+                          "
+                        />
+                      ) : (
+                        <User
+                          size={18}
+                          strokeWidth={1.8}
+                          className="
+                            pointer-events-none
+                            absolute
+                            left-3.5
+                            top-1/2
+                            -translate-y-1/2
+                            text-slate-400
+                          "
+                        />
+                      )}
+
+                      {/* Fixed +91 for mobile */}
+
+                      {/^\d*$/.test(form.identifier) && (
+                        <span
+                          className="
+                            absolute
+                            left-11
+                            top-1/2
+                            -translate-y-1/2
+                            border-r
+                            border-slate-200
+                            pr-3
+                            text-sm
+                            font-semibold
+                            text-slate-700
+                          "
+                        >
+                          +91
+                        </span>
+                      )}
 
                       <input
                         id="identifier"
                         name="identifier"
                         type="text"
                         value={form.identifier}
-                        onChange={handleChange}
+                        onChange={handleIdentifierChange}
                         autoComplete="username"
                         autoFocus
-                        placeholder="Enter email or mobile number"
-                        className="
+                        placeholder={
+                          /^\d*$/.test(form.identifier)
+                            ? "9876543210"
+                            : "Enter email or mobile number"
+                        }
+                        inputMode={
+                          /^\d*$/.test(form.identifier)
+                            ? "numeric"
+                            : "text"
+                        }
+                        className={`
                           h-12
                           w-full
                           rounded-xl
                           border
                           border-slate-300
                           bg-white
-                          pl-11
+                          ${
+                            /^\d*$/.test(form.identifier)
+                              ? "pl-[88px]"
+                              : "pl-11"
+                          }
                           pr-4
                           text-sm
                           text-slate-900
@@ -740,18 +826,19 @@ export default function LoginPage() {
                           focus:border-slate-700
                           focus:ring-4
                           focus:ring-slate-100
-                        "
+                        `}
                       />
 
                     </div>
 
                     <p className="mt-1.5 text-xs leading-5 text-slate-400">
-                      Use your registered email or mobile number.
+                      Use your registered email or 10-digit mobile number.
                     </p>
 
                   </div>
 
                   {/* Password */}
+
                   <div>
 
                     <label
@@ -856,6 +943,7 @@ export default function LoginPage() {
                   </div>
 
                   {/* Submit */}
+
                   <button
                     type="submit"
                     disabled={loading}
@@ -903,6 +991,7 @@ export default function LoginPage() {
                 </form>
 
                 {/* Register */}
+
                 <div
                   className="
                     border-t
@@ -949,11 +1038,11 @@ export default function LoginPage() {
             </>
           )}
 
-
           {step === "otp" && (
             <>
 
               {/* Success */}
+
               {success && (
                 <div
                   role="status"
@@ -984,6 +1073,7 @@ export default function LoginPage() {
               )}
 
               {/* Error */}
+
               {error && (
                 <div
                   role="alert"
@@ -1028,6 +1118,7 @@ export default function LoginPage() {
               )}
 
               {/* OTP Card */}
+
               <div
                 className="
                   overflow-hidden
@@ -1041,6 +1132,7 @@ export default function LoginPage() {
               >
 
                 {/* Card Header */}
+
                 <div
                   className="
                     border-b
@@ -1084,12 +1176,14 @@ export default function LoginPage() {
                 </div>
 
                 {/* OTP Form */}
+
                 <form
                   onSubmit={handleVerifyOtp}
                   className="space-y-6 p-5 sm:p-7"
                 >
 
                   {/* Icon */}
+
                   <div className="flex justify-center">
 
                     <div
@@ -1110,6 +1204,7 @@ export default function LoginPage() {
                   </div>
 
                   {/* Identifier */}
+
                   <div
                     className="
                       rounded-xl
@@ -1125,12 +1220,15 @@ export default function LoginPage() {
                     </p>
 
                     <p className="mt-1 truncate text-sm font-semibold text-slate-700">
-                      {form.identifier}
+                      {/^\d+$/.test(form.identifier)
+                        ? `+91${form.identifier}`
+                        : form.identifier}
                     </p>
 
                   </div>
 
                   {/* OTP */}
+
                   <div>
 
                     <label
@@ -1188,6 +1286,7 @@ export default function LoginPage() {
                   </div>
 
                   {/* Verify */}
+
                   <button
                     type="submit"
                     disabled={
@@ -1238,6 +1337,7 @@ export default function LoginPage() {
                 </form>
 
                 {/* Back */}
+
                 <div
                   className="
                     border-t
@@ -1286,8 +1386,6 @@ export default function LoginPage() {
 
         </div>
       </main>
-
-   
 
       <footer className="px-4 pb-6 pt-2 text-center">
         <p className="text-[11px] text-slate-400 sm:text-xs">
