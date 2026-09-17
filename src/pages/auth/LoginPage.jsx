@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
+  ArrowRight,
   CheckCircle2,
   Eye,
   EyeOff,
@@ -34,9 +35,11 @@ export default function LoginPage() {
 
   const otpInputRef = useRef(null);
 
+
   useEffect(() => {
     console.log("[LOGIN PAGE] Current step:", step);
   }, [step]);
+
 
   const handleChange = (e) => {
     setForm({
@@ -44,6 +47,7 @@ export default function LoginPage() {
       [e.target.name]: e.target.value,
     });
   };
+
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -157,11 +161,9 @@ export default function LoginPage() {
     }
   };
 
+
   const handleOtpChange = (e) => {
-    const value = e.target.value.replace(
-      /\D/g,
-      ""
-    );
+    const value = e.target.value.replace(/\D/g, "");
 
     console.log(
       "[LOGIN PAGE] OTP input:",
@@ -173,6 +175,7 @@ export default function LoginPage() {
       setError("");
     }
   };
+
 
   const handleVerifyOtp = async (e) => {
     e.preventDefault();
@@ -328,6 +331,7 @@ export default function LoginPage() {
     }
   };
 
+
   const handleBackToLogin = () => {
     console.log(
       "[LOGIN PAGE] Returning to login screen."
@@ -338,6 +342,7 @@ export default function LoginPage() {
     setError("");
     setSuccess("");
   };
+
 
   useEffect(() => {
     if (step === "otp") {
@@ -358,464 +363,938 @@ export default function LoginPage() {
   }, [step]);
 
   return (
-    <div className="min-h-dvh bg-slate-100 px-3 py-3 sm:px-5 sm:py-5 lg:px-8 lg:py-8">
+    <div className="min-h-dvh bg-slate-50">
 
-      <div className="mx-auto flex min-h-[calc(100dvh-1.5rem)] w-full max-w-7xl overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm sm:min-h-[calc(100dvh-2.5rem)] lg:min-h-[calc(100dvh-4rem)]">
+      <header
+        className="
+          fixed
+          left-0
+          right-0
+          top-0
+          z-50
+          w-full
+          border-b
+          border-slate-200
+          bg-white/95
+          shadow-sm
+          backdrop-blur-xl
+        "
+      >
+        <div
+          className="
+            mx-auto
+            flex
+            h-[72px]
+            w-full
+            max-w-7xl
+            items-center
+            justify-between
+            px-4
+            sm:h-20
+            sm:px-8
+            lg:px-10
+          "
+        >
 
-        {/* LEFT PANEL */}
-
-        <div className="relative hidden w-[42%] shrink-0 overflow-hidden bg-slate-900 lg:flex lg:flex-col lg:justify-between lg:p-10 xl:p-14">
-
-          <div className="absolute -right-24 -top-24 h-72 w-72 rounded-full bg-slate-800/70" />
-
-          <div className="absolute -bottom-32 -left-24 h-80 w-80 rounded-full border border-slate-700/60" />
-
-          <div className="relative z-10">
-
-            <div className="flex items-center gap-3">
-
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white text-lg font-bold text-slate-900 shadow-sm">
-                SE
-              </div>
-
-              <div>
-
-                <p className="text-lg font-semibold tracking-tight text-white">
-                  Saitring Employee Manager
-                </p>
-
-                <p className="text-xs text-slate-400">
-                  Employee management platform
-                </p>
-
-              </div>
-
+          {/* Brand */}
+          <Link
+            to="/"
+            className="
+              flex
+              min-w-0
+              items-center
+              gap-2.5
+              sm:gap-4
+            "
+          >
+            <div
+              className="
+                flex
+                h-10
+                w-10
+                shrink-0
+                items-center
+                justify-center
+                sm:h-12
+                sm:w-12
+              "
+            >
+              <img
+                src="/app-logo.png"
+                alt="Saitring Employee Manager"
+                className="
+                  h-10
+                  w-10
+                  object-contain
+                  sm:h-12
+                  sm:w-12
+                "
+              />
             </div>
 
-          </div>
+            <div className="min-w-0">
+              <h1
+                className="
+                  truncate
+                  text-[15px]
+                  font-bold
+                  leading-tight
+                  tracking-tight
+                  text-slate-900
+                  sm:text-[20px]
+                "
+              >
+                Saitring Employee Manager
+              </h1>
 
-          <div className="relative z-10 max-w-md">
+              <p
+                className="
+                  mt-0.5
+                  truncate
+                  text-[10px]
+                  text-slate-600
+                  sm:mt-1
+                  sm:text-sm
+                "
+              >
+                Aapke kaam, aapke log, ek jagah
+              </p>
+            </div>
+          </Link>
 
-            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-slate-700 bg-slate-800/80 px-3 py-1.5 text-xs font-medium text-slate-300">
+          {/* Register */}
+          <Link
+            to="/register"
+            className="
+              hidden
+              items-center
+              gap-2
+              rounded-lg
+              bg-slate-900
+              px-5
+              py-2.5
+              text-sm
+              font-bold
+              text-white
+              transition
+              hover:bg-slate-800
+              sm:inline-flex
+            "
+          >
+            Create Account
 
-              <CheckCircle2 size={14} />
+            <ArrowRight size={16} />
+          </Link>
+
+        </div>
+      </header>
+
+      <main
+        className="
+          px-4
+          pb-7
+          pt-[100px]
+          sm:px-6
+          sm:pb-10
+          sm:pt-[120px]
+          lg:px-8
+          lg:pb-14
+          lg:pt-[140px]
+        "
+      >
+
+        <div className="mx-auto w-full max-w-2xl">
+
+          <div className="mb-6 text-center sm:mb-8">
+
+            {/* Badge */}
+            <div
+              className="
+                mx-auto
+                mb-4
+                inline-flex
+                items-center
+                gap-2
+                rounded-full
+                border
+                border-slate-200
+                bg-white
+                px-3.5
+                py-2
+                text-[11px]
+                font-semibold
+                text-slate-600
+                shadow-sm
+                sm:text-xs
+              "
+            >
+              <CheckCircle2
+                size={14}
+                className="text-slate-700"
+              />
 
               {step === "login"
                 ? "Welcome back"
                 : "Secure verification"}
-
             </div>
 
-            <h2 className="text-4xl font-bold leading-tight tracking-tight text-white xl:text-5xl">
-
-              {step === "login" ? (
-                <>
-                  Your workforce.
-
-                  <span className="block text-slate-400">
-                    One organized workspace.
-                  </span>
-                </>
-              ) : (
-                <>
-                  One more step.
-
-                  <span className="block text-slate-400">
-                    Verify your identity.
-                  </span>
-                </>
-              )}
-
+            <h2
+              className="
+                text-2xl
+                font-extrabold
+                leading-tight
+                tracking-tight
+                text-slate-900
+                sm:text-3xl
+                lg:text-4xl
+              "
+            >
+              {step === "login"
+                ? "Welcome back"
+                : "Verify your identity"}
             </h2>
 
-            <p className="mt-5 max-w-md text-sm leading-7 text-slate-400">
-
+            <p
+              className="
+                mx-auto
+                mt-2
+                max-w-xl
+                text-sm
+                leading-6
+                text-slate-500
+                sm:mt-3
+                sm:text-[15px]
+              "
+            >
               {step === "login"
-                ? "Manage employees, attendance, advances and monthly closing from one centralized workspace."
-                : "We have sent a one-time verification code to your registered contact to securely complete your sign in."}
-
+                ? "Sign in to access your organization dashboard."
+                : "Enter the verification code sent to your registered contact."}
             </p>
 
           </div>
 
-          <div className="relative z-10 text-xs text-slate-500">
+          {step === "login" && (
+            <>
 
-            © {new Date().getFullYear()} Saitring Employee Manager.
-            All rights reserved.
-
-          </div>
-
-        </div>
-
-        {/* RIGHT PANEL */}
-
-        <div className="flex flex-1 items-start justify-center bg-slate-50/80 px-4 py-4 sm:items-center sm:px-8 sm:py-10 lg:px-10 xl:px-16">
-
-          <div className="w-full max-w-md">
-
-            {/* MOBILE BRAND */}
-
-            <div className="mb-5 lg:hidden">
-
-              <div className="flex items-center gap-3">
-
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-900 text-sm font-bold text-white shadow-sm">
-                  SE
-                </div>
-
-                <div className="min-w-0">
-
-                  <p className="truncate text-base font-bold text-slate-900">
-                    Saitring Employee Manager
-                  </p>
-
-                  <p className="text-xs text-slate-500">
-                    Employee management platform
-                  </p>
-
-                </div>
-
-              </div>
-
-            </div>
-
-            {/* LOGIN */}
-
-            {step === "login" && (
-              <>
-
-                <div className="mb-6">
-
-                  <p className="mb-1.5 text-sm font-medium text-slate-500">
-                    Owner portal
-                  </p>
-
-                  <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
-                    Welcome back
-                  </h1>
-
-                  <p className="mt-1.5 text-sm leading-6 text-slate-500">
-                    Sign in to access your organization dashboard.
-                  </p>
-
-                </div>
-
-                {error && (
-                  <div
-                    role="alert"
-                    className="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+              {/* Error */}
+              {error && (
+                <div
+                  role="alert"
+                  className="
+                    mb-5
+                    flex
+                    items-start
+                    gap-3
+                    rounded-xl
+                    border
+                    border-red-200
+                    bg-red-50
+                    px-4
+                    py-3
+                    text-sm
+                    text-red-700
+                  "
+                >
+                  <span
+                    className="
+                      mt-0.5
+                      flex
+                      h-5
+                      w-5
+                      shrink-0
+                      items-center
+                      justify-center
+                      rounded-full
+                      bg-red-100
+                      text-xs
+                      font-bold
+                      text-red-700
+                    "
                   >
+                    !
+                  </span>
+
+                  <p className="leading-5">
                     {error}
-                  </div>
-                )}
+                  </p>
+                </div>
+              )}
 
-                <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
+              {/* Login Card */}
+              <div
+                className="
+                  overflow-hidden
+                  rounded-2xl
+                  border
+                  border-slate-200
+                  bg-white
+                  shadow-sm
+                  sm:rounded-3xl
+                "
+              >
 
-                  <form
-                    onSubmit={handleLogin}
-                    className="space-y-5"
-                  >
+                {/* Card Header */}
+                <div
+                  className="
+                    border-b
+                    border-slate-100
+                    bg-slate-50/70
+                    px-5
+                    py-4
+                    sm:px-7
+                    sm:py-5
+                  "
+                >
+                  <div className="flex items-center gap-3">
 
-                    {/* EMAIL / MOBILE */}
+                    <div
+                      className="
+                        flex
+                        h-10
+                        w-10
+                        shrink-0
+                        items-center
+                        justify-center
+                        rounded-xl
+                        bg-slate-900
+                        text-white
+                      "
+                    >
+                      <User size={19} />
+                    </div>
 
                     <div>
-
-                      <label
-                        htmlFor="identifier"
-                        className="mb-2 block text-sm font-medium text-slate-700"
-                      >
-                        Email or mobile number
-                      </label>
-
-                      <div className="relative">
-
-                        <User
-                          size={18}
-                          className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
-                        />
-
-                        <input
-                          id="identifier"
-                          name="identifier"
-                          type="text"
-                          value={form.identifier}
-                          onChange={handleChange}
-                          autoComplete="username"
-                          autoFocus
-                          placeholder="Enter email or mobile number"
-                          className="h-11 w-full rounded-lg border border-slate-300 bg-white pl-11 pr-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-500 focus:ring-2 focus:ring-slate-200"
-                        />
-
-                      </div>
-
-                      <p className="mt-1.5 text-xs text-slate-400">
-                        You can sign in using your registered email or mobile number.
+                      <p className="text-sm font-bold text-slate-900">
+                        Owner sign in
                       </p>
 
+                      <p className="mt-0.5 text-xs text-slate-500">
+                        Enter your account credentials.
+                      </p>
                     </div>
 
-                    {/* PASSWORD */}
+                  </div>
+                </div>
 
-                    <div>
+                {/* Login Form */}
+                <form
+                  onSubmit={handleLogin}
+                  className="space-y-5 p-5 sm:p-7"
+                >
 
-                      <label
-                        htmlFor="password"
-                        className="mb-2 block text-sm font-medium text-slate-700"
-                      >
-                        Password
-                      </label>
+                  {/* Identifier */}
+                  <div>
 
-                      <div className="relative">
-
-                        <Lock
-                          size={18}
-                          className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
-                        />
-
-                        <input
-                          id="password"
-                          name="password"
-                          type={
-                            showPassword
-                              ? "text"
-                              : "password"
-                          }
-                          value={form.password}
-                          onChange={handleChange}
-                          autoComplete="current-password"
-                          placeholder="Enter your password"
-                          className="h-11 w-full rounded-lg border border-slate-300 bg-white pl-11 pr-11 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-500 focus:ring-2 focus:ring-slate-200"
-                        />
-
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setShowPassword(
-                              (prev) => !prev
-                            )
-                          }
-                          aria-label={
-                            showPassword
-                              ? "Hide password"
-                              : "Show password"
-                          }
-                          className="absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-md text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
-                        >
-                          {showPassword ? (
-                            <EyeOff size={17} />
-                          ) : (
-                            <Eye size={17} />
-                          )}
-                        </button>
-
-                      </div>
-
-                    </div>
-
-                    {/* SUBMIT */}
-
-                    <button
-                      type="submit"
-                      disabled={loading}
-                      className="flex h-11 w-full items-center justify-center rounded-lg bg-slate-900 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-300 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+                    <label
+                      htmlFor="identifier"
+                      className="
+                        mb-2
+                        block
+                        text-sm
+                        font-semibold
+                        text-slate-700
+                      "
                     >
-                      {loading
-                        ? "Sending verification code..."
-                        : "Continue"}
-                    </button>
+                      Email or mobile number
+                    </label>
 
-                  </form>
+                    <div className="relative">
 
-                  {/* DIVIDER */}
+                      <User
+                        size={18}
+                        strokeWidth={1.8}
+                        className="
+                          pointer-events-none
+                          absolute
+                          left-3.5
+                          top-1/2
+                          -translate-y-1/2
+                          text-slate-400
+                        "
+                      />
 
-                  <div className="my-6 flex items-center gap-3">
+                      <input
+                        id="identifier"
+                        name="identifier"
+                        type="text"
+                        value={form.identifier}
+                        onChange={handleChange}
+                        autoComplete="username"
+                        autoFocus
+                        placeholder="Enter email or mobile number"
+                        className="
+                          h-12
+                          w-full
+                          rounded-xl
+                          border
+                          border-slate-300
+                          bg-white
+                          pl-11
+                          pr-4
+                          text-sm
+                          text-slate-900
+                          outline-none
+                          transition
+                          placeholder:text-slate-400
+                          hover:border-slate-400
+                          focus:border-slate-700
+                          focus:ring-4
+                          focus:ring-slate-100
+                        "
+                      />
 
-                    <div className="h-px flex-1 bg-slate-200" />
+                    </div>
 
-                    <span className="text-xs text-slate-400">
-                      New organization?
-                    </span>
-
-                    <div className="h-px flex-1 bg-slate-200" />
+                    <p className="mt-1.5 text-xs leading-5 text-slate-400">
+                      Use your registered email or mobile number.
+                    </p>
 
                   </div>
 
-                  {/* REGISTER */}
+                  {/* Password */}
+                  <div>
+
+                    <label
+                      htmlFor="password"
+                      className="
+                        mb-2
+                        block
+                        text-sm
+                        font-semibold
+                        text-slate-700
+                      "
+                    >
+                      Password
+                    </label>
+
+                    <div className="relative">
+
+                      <Lock
+                        size={18}
+                        strokeWidth={1.8}
+                        className="
+                          pointer-events-none
+                          absolute
+                          left-3.5
+                          top-1/2
+                          -translate-y-1/2
+                          text-slate-400
+                        "
+                      />
+
+                      <input
+                        id="password"
+                        name="password"
+                        type={
+                          showPassword
+                            ? "text"
+                            : "password"
+                        }
+                        value={form.password}
+                        onChange={handleChange}
+                        autoComplete="current-password"
+                        placeholder="Enter your password"
+                        className="
+                          h-12
+                          w-full
+                          rounded-xl
+                          border
+                          border-slate-300
+                          bg-white
+                          pl-11
+                          pr-12
+                          text-sm
+                          text-slate-900
+                          outline-none
+                          transition
+                          placeholder:text-slate-400
+                          hover:border-slate-400
+                          focus:border-slate-700
+                          focus:ring-4
+                          focus:ring-slate-100
+                        "
+                      />
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setShowPassword(
+                            (prev) => !prev
+                          )
+                        }
+                        aria-label={
+                          showPassword
+                            ? "Hide password"
+                            : "Show password"
+                        }
+                        className="
+                          absolute
+                          right-2
+                          top-1/2
+                          flex
+                          h-8
+                          w-8
+                          -translate-y-1/2
+                          items-center
+                          justify-center
+                          rounded-lg
+                          text-slate-400
+                          transition
+                          hover:bg-slate-100
+                          hover:text-slate-700
+                        "
+                      >
+                        {showPassword ? (
+                          <EyeOff size={17} />
+                        ) : (
+                          <Eye size={17} />
+                        )}
+                      </button>
+
+                    </div>
+
+                  </div>
+
+                  {/* Submit */}
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="
+                      group
+                      flex
+                      h-12
+                      w-full
+                      items-center
+                      justify-center
+                      gap-2
+                      rounded-xl
+                      bg-slate-900
+                      px-5
+                      text-sm
+                      font-bold
+                      text-white
+                      shadow-sm
+                      transition
+                      hover:bg-slate-800
+                      focus:outline-none
+                      focus:ring-4
+                      focus:ring-slate-200
+                      disabled:cursor-not-allowed
+                      disabled:opacity-60
+                    "
+                  >
+                    {loading ? (
+                      "Sending verification code..."
+                    ) : (
+                      <>
+                        Continue
+
+                        <ArrowRight
+                          size={17}
+                          className="
+                            transition-transform
+                            group-hover:translate-x-1
+                          "
+                        />
+                      </>
+                    )}
+                  </button>
+
+                </form>
+
+                {/* Register */}
+                <div
+                  className="
+                    border-t
+                    border-slate-100
+                    px-5
+                    py-5
+                    sm:px-7
+                  "
+                >
+
+                  <p className="text-center text-xs text-slate-400">
+                    Don't have an owner account?
+                  </p>
 
                   <Link
                     to="/register"
-                    className="flex h-11 w-full items-center justify-center rounded-lg border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 hover:text-slate-900"
+                    className="
+                      mt-2
+                      flex
+                      h-11
+                      w-full
+                      items-center
+                      justify-center
+                      rounded-xl
+                      border
+                      border-slate-300
+                      bg-white
+                      px-4
+                      text-sm
+                      font-semibold
+                      text-slate-700
+                      transition
+                      hover:bg-slate-50
+                      hover:text-slate-900
+                    "
                   >
                     Create an owner account
                   </Link>
 
                 </div>
 
-                <p className="mt-5 text-center text-xs text-slate-400">
-                  © {new Date().getFullYear()} Saitring Employee Manager
-                </p>
+              </div>
 
-              </>
-            )}
+            </>
+          )}
 
-            {/* OTP */}
 
-            {step === "otp" && (
-              <>
+          {step === "otp" && (
+            <>
 
-                <div className="mb-6">
+              {/* Success */}
+              {success && (
+                <div
+                  role="status"
+                  className="
+                    mb-5
+                    flex
+                    items-start
+                    gap-3
+                    rounded-xl
+                    border
+                    border-emerald-200
+                    bg-emerald-50
+                    px-4
+                    py-3
+                    text-sm
+                    text-emerald-700
+                  "
+                >
+                  <MailCheck
+                    size={18}
+                    className="mt-0.5 shrink-0"
+                  />
 
-                  <p className="mb-1.5 text-sm font-medium text-slate-500">
-                    Secure verification
+                  <p className="leading-5">
+                    {success}
                   </p>
+                </div>
+              )}
 
-                  <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
-                    Verify your identity
-                  </h1>
+              {/* Error */}
+              {error && (
+                <div
+                  role="alert"
+                  className="
+                    mb-5
+                    flex
+                    items-start
+                    gap-3
+                    rounded-xl
+                    border
+                    border-red-200
+                    bg-red-50
+                    px-4
+                    py-3
+                    text-sm
+                    text-red-700
+                  "
+                >
+                  <span
+                    className="
+                      mt-0.5
+                      flex
+                      h-5
+                      w-5
+                      shrink-0
+                      items-center
+                      justify-center
+                      rounded-full
+                      bg-red-100
+                      text-xs
+                      font-bold
+                      text-red-700
+                    "
+                  >
+                    !
+                  </span>
 
-                  <p className="mt-1.5 text-sm leading-6 text-slate-500">
-                    Enter the 6-digit verification code sent to your registered contact.
+                  <p className="leading-5">
+                    {error}
                   </p>
+                </div>
+              )}
 
+              {/* OTP Card */}
+              <div
+                className="
+                  overflow-hidden
+                  rounded-2xl
+                  border
+                  border-slate-200
+                  bg-white
+                  shadow-sm
+                  sm:rounded-3xl
+                "
+              >
+
+                {/* Card Header */}
+                <div
+                  className="
+                    border-b
+                    border-slate-100
+                    bg-slate-50/70
+                    px-5
+                    py-4
+                    sm:px-7
+                    sm:py-5
+                  "
+                >
+                  <div className="flex items-center gap-3">
+
+                    <div
+                      className="
+                        flex
+                        h-10
+                        w-10
+                        shrink-0
+                        items-center
+                        justify-center
+                        rounded-xl
+                        bg-slate-900
+                        text-white
+                      "
+                    >
+                      <KeyRound size={19} />
+                    </div>
+
+                    <div>
+                      <p className="text-sm font-bold text-slate-900">
+                        Verification required
+                      </p>
+
+                      <p className="mt-0.5 text-xs text-slate-500">
+                        Complete the final step to sign in.
+                      </p>
+                    </div>
+
+                  </div>
                 </div>
 
-                {/* SUCCESS */}
+                {/* OTP Form */}
+                <form
+                  onSubmit={handleVerifyOtp}
+                  className="space-y-6 p-5 sm:p-7"
+                >
 
-                {success && (
+                  {/* Icon */}
+                  <div className="flex justify-center">
+
+                    <div
+                      className="
+                        flex
+                        h-16
+                        w-16
+                        items-center
+                        justify-center
+                        rounded-2xl
+                        bg-slate-100
+                        text-slate-700
+                      "
+                    >
+                      <KeyRound size={28} />
+                    </div>
+
+                  </div>
+
+                  {/* Identifier */}
                   <div
-                    role="status"
-                    className="mb-5 flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700"
+                    className="
+                      rounded-xl
+                      bg-slate-50
+                      px-4
+                      py-3
+                      text-center
+                    "
                   >
 
-                    <MailCheck
-                      size={18}
-                      className="mt-0.5 shrink-0"
-                    />
+                    <p className="text-xs text-slate-400">
+                      Verification requested for
+                    </p>
 
-                    <p className="leading-5">
-                      {success}
+                    <p className="mt-1 truncate text-sm font-semibold text-slate-700">
+                      {form.identifier}
                     </p>
 
                   </div>
-                )}
 
-                {/* ERROR */}
+                  {/* OTP */}
+                  <div>
 
-                {error && (
-                  <div
-                    role="alert"
-                    className="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
-                  >
-                    {error}
-                  </div>
-                )}
-
-                <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
-
-                  <form
-                    onSubmit={handleVerifyOtp}
-                    className="space-y-6"
-                  >
-
-                    {/* ICON */}
-
-                    <div className="flex justify-center">
-
-                      <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100 text-slate-700">
-                        <KeyRound size={28} />
-                      </div>
-
-                    </div>
-
-                    {/* IDENTIFIER */}
-
-                    <div className="rounded-xl bg-slate-50 px-4 py-3 text-center">
-
-                      <p className="text-xs text-slate-400">
-                        Verification requested for
-                      </p>
-
-                      <p className="mt-1 truncate text-sm font-semibold text-slate-700">
-                        {form.identifier}
-                      </p>
-
-                    </div>
-
-                    {/* OTP */}
-
-                    <div>
-
-                      <label
-                        htmlFor="otp"
-                        className="mb-2 block text-center text-sm font-medium text-slate-700"
-                      >
-                        Verification code
-                      </label>
-
-                      <input
-                        ref={otpInputRef}
-                        id="otp"
-                        name="otp"
-                        type="text"
-                        inputMode="numeric"
-                        autoComplete="one-time-code"
-                        maxLength={6}
-                        value={otp}
-                        onChange={handleOtpChange}
-                        placeholder="000000"
-                        className="h-14 w-full rounded-xl border border-slate-300 bg-white text-center text-2xl font-bold tracking-[0.5em] text-slate-900 outline-none transition placeholder:font-normal placeholder:tracking-[0.5em] placeholder:text-slate-300 focus:border-slate-500 focus:ring-2 focus:ring-slate-200"
-                      />
-
-                      <p className="mt-2 text-center text-xs text-slate-400">
-                        Enter exactly 6 digits
-                      </p>
-
-                    </div>
-
-                    {/* VERIFY */}
-
-                    <button
-                      type="submit"
-                      disabled={
-                        loading ||
-                        otp.length !== 6
-                      }
-                      className="flex h-11 w-full items-center justify-center rounded-lg bg-slate-900 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-300 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+                    <label
+                      htmlFor="otp"
+                      className="
+                        mb-2
+                        block
+                        text-center
+                        text-sm
+                        font-semibold
+                        text-slate-700
+                      "
                     >
-                      {loading
-                        ? "Verifying..."
-                        : "Verify and sign in"}
-                    </button>
+                      Verification code
+                    </label>
 
-                  </form>
+                    <input
+                      ref={otpInputRef}
+                      id="otp"
+                      name="otp"
+                      type="text"
+                      inputMode="numeric"
+                      autoComplete="one-time-code"
+                      maxLength={6}
+                      value={otp}
+                      onChange={handleOtpChange}
+                      placeholder="000000"
+                      className="
+                        h-14
+                        w-full
+                        rounded-xl
+                        border
+                        border-slate-300
+                        bg-white
+                        text-center
+                        text-2xl
+                        font-bold
+                        tracking-[0.5em]
+                        text-slate-900
+                        outline-none
+                        transition
+                        placeholder:font-normal
+                        placeholder:tracking-[0.5em]
+                        placeholder:text-slate-300
+                        focus:border-slate-700
+                        focus:ring-4
+                        focus:ring-slate-100
+                      "
+                    />
 
-                  {/* BACK */}
+                    <p className="mt-2 text-center text-xs text-slate-400">
+                      Enter exactly 6 digits
+                    </p>
+
+                  </div>
+
+                  {/* Verify */}
+                  <button
+                    type="submit"
+                    disabled={
+                      loading ||
+                      otp.length !== 6
+                    }
+                    className="
+                      group
+                      flex
+                      h-12
+                      w-full
+                      items-center
+                      justify-center
+                      gap-2
+                      rounded-xl
+                      bg-slate-900
+                      px-5
+                      text-sm
+                      font-bold
+                      text-white
+                      shadow-sm
+                      transition
+                      hover:bg-slate-800
+                      focus:outline-none
+                      focus:ring-4
+                      focus:ring-slate-200
+                      disabled:cursor-not-allowed
+                      disabled:opacity-60
+                    "
+                  >
+                    {loading ? (
+                      "Verifying..."
+                    ) : (
+                      <>
+                        Verify and sign in
+
+                        <ArrowRight
+                          size={17}
+                          className="
+                            transition-transform
+                            group-hover:translate-x-1
+                          "
+                        />
+                      </>
+                    )}
+                  </button>
+
+                </form>
+
+                {/* Back */}
+                <div
+                  className="
+                    border-t
+                    border-slate-100
+                    px-5
+                    py-5
+                    sm:px-7
+                  "
+                >
 
                   <button
                     type="button"
                     onClick={handleBackToLogin}
                     disabled={loading}
-                    className="mt-5 flex w-full items-center justify-center gap-2 text-sm font-medium text-slate-500 transition hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="
+                      flex
+                      w-full
+                      items-center
+                      justify-center
+                      gap-2
+                      text-sm
+                      font-semibold
+                      text-slate-500
+                      transition
+                      hover:text-slate-900
+                      disabled:cursor-not-allowed
+                      disabled:opacity-50
+                    "
                   >
                     <ArrowLeft size={16} />
+
                     Use a different account
                   </button>
 
                 </div>
 
-                <p className="mt-5 text-center text-xs text-slate-400">
-                  Your verification code expires after the configured
-                  validity period.
-                </p>
+              </div>
 
-              </>
-            )}
+              <p className="mt-5 text-center text-xs text-slate-400">
+                Your verification code expires after the configured
+                validity period.
+              </p>
 
-          </div>
+            </>
+          )}
 
         </div>
+      </main>
 
-      </div>
+   
+
+      <footer className="px-4 pb-6 pt-2 text-center">
+        <p className="text-[11px] text-slate-400 sm:text-xs">
+          © {new Date().getFullYear()} Saitring Employee Manager.
+          All rights reserved.
+        </p>
+      </footer>
 
     </div>
   );

@@ -4,6 +4,7 @@ import {
   Navigate,
 } from "react-router-dom";
 
+import LandingPage from "../pages/LandingPage";
 import LoginPage from "../pages/auth/LoginPage";
 import RegisterPage from "../pages/auth/RegisterPage";
 
@@ -18,31 +19,33 @@ import MonthClosingPage from "../pages/monthClosing/MonthClosingPage";
 import ProtectedRoute from "./ProtectedRoute";
 import AppLayout from "../components/layout/AppLayout";
 
+
 export default function AppRoutes() {
   return (
     <Routes>
 
-      {/* Main / Default Page */}
+
+      {/* Landing Page */}
       <Route
         path="/"
-        element={
-          <Navigate
-            to="/register"
-            replace
-          />
-        }
+        element={<LandingPage />}
       />
 
+      {/* Login Page */}
       <Route
         path="/login"
         element={<LoginPage />}
       />
 
+      {/* Register Page */}
       <Route
         path="/register"
         element={<RegisterPage />}
       />
 
+
+
+      {/* Dashboard */}
       <Route
         path="/dashboard"
         element={
@@ -54,6 +57,7 @@ export default function AppRoutes() {
         }
       />
 
+      {/* Employees */}
       <Route
         path="/employees"
         element={
@@ -65,6 +69,7 @@ export default function AppRoutes() {
         }
       />
 
+      {/* Attendance */}
       <Route
         path="/attendance"
         element={
@@ -76,6 +81,7 @@ export default function AppRoutes() {
         }
       />
 
+      {/* Advances */}
       <Route
         path="/advances"
         element={
@@ -87,6 +93,7 @@ export default function AppRoutes() {
         }
       />
 
+      {/* Month Closing */}
       <Route
         path="/month-closing"
         element={
@@ -98,6 +105,7 @@ export default function AppRoutes() {
         }
       />
 
+      {/* Owner Profile */}
       <Route
         path="/profile"
         element={
@@ -106,6 +114,16 @@ export default function AppRoutes() {
               <OwnerProfile />
             </AppLayout>
           </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="*"
+        element={
+          <Navigate
+            to="/"
+            replace
+          />
         }
       />
 
