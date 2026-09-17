@@ -6,51 +6,62 @@ const Hero = () => {
   return (
     <section
       id="home"
-     className="
-  bg-slate-950
-  px-0
-  py-0
-  sm:px-0
-  sm:py-0
-  lg:px-8
-  lg:py-6
-"
+      className="
+        relative
+        -mt-0
+        bg-slate-950
+        px-0
+        py-0
+        sm:px-0
+        sm:py-0
+        lg:px-8
+        lg:py-6
+      "
     >
       <div
-       className="
-  relative
-  mx-auto
-  min-h-[880px]
-  w-full
-  overflow-hidden
-  bg-slate-950
+        className="
+          relative
+          mx-auto
+          min-h-[880px]
+          w-full
+          overflow-hidden
+          bg-slate-950
 
-  sm:min-h-[820px]
+          sm:min-h-[820px]
 
-  lg:min-h-[600px]
-  lg:max-w-[1470px]
-  lg:rounded-none
-"
+          lg:min-h-[600px]
+          lg:max-w-[1470px]
+          lg:rounded-none
+        "
       >
+        {/* ==================================================
+            HERO IMAGE
+        ================================================== */}
+
 <img
   src="/images/landing-hero.png"
   alt="Construction workers working on a building site"
   className="
     absolute
-    inset-0
-    h-full
+    left-0
+    top-[-40px]
+    h-auto
     w-full
-    object-cover
+    object-contain
+    object-top
 
-    /* Show more of the lower construction area */
-    object-[50%_75%]
+    sm:top-[-30px]
 
-    sm:object-[50%_72%]
-
+    lg:inset-0
+    lg:h-full
+    lg:w-full
+    lg:object-cover
     lg:object-center
   "
 />
-
+        {/* ==================================================
+            LIGHT OVERLAY
+        ================================================== */}
 
         <div
           className="
@@ -60,6 +71,9 @@ const Hero = () => {
           "
         />
 
+        {/* ==================================================
+            MOBILE GRADIENT
+        ================================================== */}
 
         <div
           className="
@@ -74,13 +88,15 @@ const Hero = () => {
           "
         />
 
+        {/* ==================================================
+            DESKTOP GRADIENT
+        ================================================== */}
 
         <div
           className="
             absolute
             inset-0
             hidden
-
             lg:block
             lg:bg-gradient-to-r
             lg:from-slate-950/90
@@ -88,6 +104,10 @@ const Hero = () => {
             lg:to-transparent
           "
         />
+
+        {/* ==================================================
+            EXTRA MOBILE BOTTOM GRADIENT
+        ================================================== */}
 
         <div
           className="
@@ -107,31 +127,30 @@ const Hero = () => {
           "
         />
 
+        {/* ==================================================
+            HERO CONTENT
+        ================================================== */}
+<div
+  className="
+    relative
+    z-10
+    min-h-[880px]
+    px-5
+    pt-[360px]
+    pb-8
 
-        <div
-          className="
-            relative
-            z-10
-            min-h-[880px]
-            px-5
+    sm:min-h-[820px]
+    sm:px-7
+    sm:pt-[300px]
 
-            /* Instead of items-end:
-               content starts around the lower-middle */
-            pt-[490px]
-            pb-8
-
-            sm:min-h-[820px]
-            sm:px-7
-            sm:pt-[430px]
-
-            lg:flex
-            lg:min-h-[600px]
-            lg:items-center
-            lg:px-12
-            lg:py-12
-            lg:pt-12
-          "
-        >
+    lg:flex
+    lg:min-h-[600px]
+    lg:items-center
+    lg:px-12
+    lg:py-12
+    lg:pt-12
+  "
+>
           <div
             className="
               w-full
@@ -140,25 +159,25 @@ const Hero = () => {
               lg:max-w-[620px]
             "
           >
+            {/* ==================================================
+                BADGE
+            ================================================== */}
+
             <div
               className="
                 mb-4
                 inline-flex
                 items-center
                 gap-2
-
                 rounded-full
                 border
                 border-white/30
-
                 bg-white/15
                 px-3
                 py-2
-
                 text-[11px]
                 font-semibold
                 text-white
-
                 shadow-lg
                 backdrop-blur-md
 
@@ -176,16 +195,17 @@ const Hero = () => {
               Saitring ke kaam ke liye
             </div>
 
+            {/* ==================================================
+                HEADING
+            ================================================== */}
 
             <h1
               className="
                 max-w-[390px]
-
                 text-[38px]
                 font-extrabold
                 leading-[1.02]
                 tracking-[-0.04em]
-
                 text-white
 
                 sm:max-w-[550px]
@@ -209,14 +229,17 @@ const Hero = () => {
 
               bhi aasaan.
             </h1>
+
+            {/* ==================================================
+                DESCRIPTION
+            ================================================== */}
+
             <p
               className="
                 mt-5
                 max-w-[570px]
-
                 text-[14px]
                 leading-6
-
                 text-white/90
 
                 sm:mt-6
@@ -231,10 +254,14 @@ const Hero = () => {
               mahine ka hisaab ek hi jagah se aasani se
               handle karein.
             </p>
+
+            {/* ==================================================
+                BUTTONS
+            ================================================== */}
+
             <div
               className="
                 mt-6
-
                 grid
                 grid-cols-1
                 gap-2.5
@@ -247,33 +274,26 @@ const Hero = () => {
               "
             >
               {/* CREATE ACCOUNT */}
+
               <Link
                 to="/register"
                 className="
                   group
-
                   inline-flex
                   h-12
                   w-full
                   items-center
                   justify-center
                   gap-2
-
                   rounded-xl
-
                   bg-white
-
                   px-5
-
                   text-[14px]
                   font-bold
                   text-slate-900
-
                   shadow-xl
-
                   transition-all
                   duration-200
-
                   hover:bg-slate-100
                   active:scale-[0.99]
 
@@ -296,6 +316,7 @@ const Hero = () => {
               </Link>
 
               {/* SIGN IN */}
+
               <Link
                 to="/login"
                 className="
@@ -304,28 +325,19 @@ const Hero = () => {
                   w-full
                   items-center
                   justify-center
-
                   rounded-xl
-
                   border
                   border-white/40
-
                   bg-white/10
-
                   px-5
-
                   text-[14px]
                   font-bold
                   text-white
-
                   backdrop-blur-md
-
                   transition-all
                   duration-200
-
                   hover:bg-white
                   hover:text-slate-900
-
                   active:scale-[0.99]
 
                   sm:h-13
@@ -337,16 +349,17 @@ const Hero = () => {
               </Link>
             </div>
 
+            {/* ==================================================
+                FEATURES
+            ================================================== */}
+
             <div
               className="
                 mt-5
-
                 flex
                 flex-wrap
-
                 gap-x-5
                 gap-y-3
-
                 text-[12px]
                 font-medium
                 text-white/90
