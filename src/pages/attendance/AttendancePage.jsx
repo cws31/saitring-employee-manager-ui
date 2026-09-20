@@ -1,48 +1,49 @@
 import React, { useEffect, useMemo, useState } from "react";
 import {
   CalendarDays,
-  Check,
-  Clock,
-  FileText,
+  ChevronLeft,
+  ChevronRight,
   Search,
   X,
-  RotateCcw,
-  Users,
 } from "lucide-react";
 
-import attendanceApi from "../../api/attendanceApi";
-import employeeApi from "../../api/employeeApi";
-import AttendanceSummary from "../../components/attendance/AttendanceSummary";
+import attendanceApi from "../api/attendanceApi";
+import employeeApi from "../api/employeeApi";
+import AttendanceSummary from "../components/AttendanceSummary";
 
 const STATUS = {
   PRESENT: "PRESENT",
   ABSENT: "ABSENT",
   HALF_DAY: "HALF_DAY",
+  LEAVE: "LEAVE",
 };
 
 const STATUS_LABEL = {
   PRESENT: "Present",
   ABSENT: "Absent",
   HALF_DAY: "Half Day",
+  LEAVE: "Leave",
 };
 
 const STATUS_STYLE = {
   PRESENT: "bg-green-100 text-green-700 border-green-200",
   ABSENT: "bg-red-100 text-red-700 border-red-200",
   HALF_DAY: "bg-yellow-100 text-yellow-700 border-yellow-200",
+  LEAVE: "bg-blue-100 text-blue-700 border-blue-200",
 };
 
-const getCurrentYear = () => new Date().getFullYear();
-
-const getCurrentMonth = () => new Date().getMonth() + 1;
-
 const getTodayDateString = () => {
-  const d = new Date();
+  const today = new Date();
 
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(
-    2,
-    "0"
-  )}-${String(d.getDate()).padStart(2, "0")}`;
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const day = String(today.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+};
+
+const getDaysInMonth = (year, month) => {
+  return new Date(year, month, 0).getDate();
 };
 
 const formatDate = (year, month, day) => {
@@ -52,18 +53,23 @@ const formatDate = (year, month, day) => {
   )}`;
 };
 
-const getDaysInMonth = (year, month) => {
-  return new Date(year, month, 0).getDate();
+const formatMonthYear = (year, month) => {
+  return new Date(year, month - 1, 1).toLocaleDateString("en-IN", {
+    month: "long",
+    year: "numeric",
+  });
 };
 
-export default function AttendancePage() {
+const AttendancePage = () => {
+  const today = new Date();
+
   const [employees, setEmployees] = useState([]);
-  const [attendance, setAttendance] = useState([]);
+  const [attendance, setAttendance] = useState({});
 
-  const [year, setYear] = useState(getCurrentYear());
-  const [month, setMonth] = useState(getCurrentMonth());
+  const [year, setYear] = useState(today.getFullYear());
+  const [month, setMonth] = useState(today.getMonth() + 1);
 
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [bulkSaving, setBulkSaving] = useState(false);
 
@@ -76,323 +82,234 @@ export default function AttendancePage() {
   const [summaryError, setSummaryError] = useState("");
   const [summaryDate, setSummaryDate] = useState(getTodayDateString());
 
+  const [summaryOpen, setSummaryOpen] = useState(false);
+
   const [searchQuery, setSearchQuery] = useState("");
+
   const [selectedCell, setSelectedCell] = useState(null);
 
   const [form, setForm] = useState({
+    employeeId: "",
+    date: "",
     status: STATUS.PRESENT,
-    reason: "",
   });
 
   const [bulkModalOpen, setBulkModalOpen] = useState(false);
+  const [bulkDate, setBulkDate] = useState(getTodayDateString());
+  const [bulkStatus, setBulkStatus] = useState(STATUS.PRESENT);
 
-  const [bulkForm, setBulkForm] = useState({
-    date: "",
-    status: STATUS.PRESENT,
-    reason: "",
-  });
+  const daysInMonth = useMemo(
+    () => getDaysInMonth(year, month),
+    [year, month]
+  );
 
-  const days = useMemo(() => {
-    return Array.from(
-      { length: getDaysInMonth(year, month) },
-      (_, index) => index + 1
-    );
-  }, [year, month]);
+  const days = useMemo(
+    () => Array.from({ length: daysInMonth }, (_, index) => index + 1),
+    [daysInMonth]
+  );
 
-  const monthlyTotals = useMemo(() => {
-    return monthlySummary.reduce(
-      (totals, record) => {
-        totals.present += Number(record.present ?? 0);
-        totals.absent += Number(record.absent ?? 0);
-        totals.halfPresent += Number(record.halfPresent ?? 0);
-
-        return totals;
-      },
-      {
-        present: 0,
-        absent: 0,
-        halfPresent: 0,
-      }
-    );
-  }, [monthlySummary]);
-
-  const loadDailySummary = async (date) => {
-    if (!date) return;
-
+  const loadEmployees = async () => {
     try {
-      const response = await attendanceApi.getDailySummary(date);
+      const response = await employeeApi.getAllEmployees();
 
-      setDailySummary(response || null);
-      setSummaryError("");
+      const data = response?.data ?? response ?? [];
+
+      setEmployees(Array.isArray(data) ? data : []);
     } catch (err) {
-      console.error("Failed to load daily attendance summary:", err);
-
-      setDailySummary(null);
-
-      setSummaryError(
-        err.response?.data?.message ||
-          "Unable to load daily attendance summary."
-      );
+      console.error("Failed to load employees:", err);
+      setError("Failed to load employees.");
     }
   };
 
-  const loadMonthlySummary = async () => {
-    try {
-      const response = await attendanceApi.getMonthlySummary(year, month);
-
-      setMonthlySummary(Array.isArray(response) ? response : []);
-    } catch (err) {
-      console.error("Failed to load monthly attendance summary:", err);
-
-      setMonthlySummary([]);
-
-      throw err;
-    }
-  };
-
-  const loadAttendanceData = async () => {
+  const loadAttendance = async () => {
     try {
       setLoading(true);
-      setSummaryLoading(true);
-
       setError("");
+
+      const response = await attendanceApi.getMonthlyAttendance(year, month);
+
+      const data = response?.data ?? response ?? [];
+
+      const attendanceMap = {};
+
+      if (Array.isArray(data)) {
+        data.forEach((item) => {
+          const employeeId =
+            item.employeeId ??
+            item.employee?.id ??
+            item.employee?.employeeId;
+
+          const date =
+            item.date ??
+            item.attendanceDate ??
+            item.attendance?.date;
+
+          const status = item.status;
+
+          if (employeeId && date) {
+            if (!attendanceMap[employeeId]) {
+              attendanceMap[employeeId] = {};
+            }
+
+            attendanceMap[employeeId][date] = status;
+          }
+        });
+      }
+
+      setAttendance(attendanceMap);
+    } catch (err) {
+      console.error("Failed to load attendance:", err);
+      setError("Failed to load attendance.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadSummary = async () => {
+    try {
+      setSummaryLoading(true);
       setSummaryError("");
 
-      const [
-        employeesResponse,
-        attendanceResponse,
-        monthlySummaryResponse,
-        dailySummaryResponse,
-      ] = await Promise.all([
-        employeeApi.getAll(),
-        attendanceApi.getMonthly(year, month),
+      const [monthlyResponse, dailyResponse] = await Promise.all([
         attendanceApi.getMonthlySummary(year, month),
         attendanceApi.getDailySummary(summaryDate),
       ]);
 
-      setEmployees(
-        Array.isArray(employeesResponse) ? employeesResponse : []
-      );
+      const monthlyData =
+        monthlyResponse?.data ?? monthlyResponse ?? [];
 
-      setAttendance(
-        Array.isArray(attendanceResponse) ? attendanceResponse : []
-      );
+      const dailyData =
+        dailyResponse?.data ?? dailyResponse ?? null;
 
       setMonthlySummary(
-        Array.isArray(monthlySummaryResponse)
-          ? monthlySummaryResponse
-          : []
+        Array.isArray(monthlyData) ? monthlyData : []
       );
 
-      setDailySummary(dailySummaryResponse || null);
+      setDailySummary(dailyData);
     } catch (err) {
-      console.error("Failed to load attendance data:", err);
-
-      const message =
-        err.response?.data?.message ||
-        "Failed to load attendance data. Please try again.";
-
-      setError(message);
-      setSummaryError(message);
+      console.error("Failed to load attendance summary:", err);
+      setSummaryError("Failed to load attendance summary.");
     } finally {
-      setLoading(false);
       setSummaryLoading(false);
     }
   };
 
   useEffect(() => {
-    loadAttendanceData();
-  }, [year, month]);
+    loadEmployees();
+  }, []);
 
   useEffect(() => {
-    loadDailySummary(summaryDate);
-  }, [summaryDate]);
+    const loadData = async () => {
+      await Promise.all([loadAttendance(), loadSummary()]);
+    };
 
-  const handleDateSelectionChange = (newDate) => {
-    if (!newDate) return;
+    loadData();
+  }, [year, month, summaryDate]);
 
-    setSummaryDate(newDate);
+  const handleDateSelectionChange = (date) => {
+    setSummaryDate(date);
 
-    const [selectedYear, selectedMonth] = newDate
-      .split("-")
-      .map(Number);
+    if (!date) {
+      return;
+    }
 
-    if (
-      selectedYear &&
-      selectedMonth &&
-      (selectedYear !== year || selectedMonth !== month)
-    ) {
+    const selectedDate = new Date(`${date}T00:00:00`);
+
+    if (Number.isNaN(selectedDate.getTime())) {
+      return;
+    }
+
+    const selectedYear = selectedDate.getFullYear();
+    const selectedMonth = selectedDate.getMonth() + 1;
+
+    if (selectedYear !== year || selectedMonth !== month) {
       setYear(selectedYear);
       setMonth(selectedMonth);
     }
   };
 
-  const handleSummaryRetry = async () => {
-    try {
-      setSummaryLoading(true);
-      setSummaryError("");
-
-      await Promise.all([
-        loadDailySummary(summaryDate),
-        loadMonthlySummary(),
-      ]);
-    } catch (err) {
-      setSummaryError(
-        err.response?.data?.message ||
-          "Unable to load attendance summary."
-      );
-    } finally {
-      setSummaryLoading(false);
-    }
+  const handleSummaryRetry = () => {
+    loadSummary();
   };
 
-  const attendanceMap = useMemo(() => {
-    const map = new Map();
-
-    attendance.forEach((record) => {
-      const key = `${record.employeeId}_${record.attendanceDate}`;
-
-      map.set(key, record);
-    });
-
-    return map;
-  }, [attendance]);
-
-  const getAttendanceRecord = (employeeId, day) => {
-    const date = formatDate(year, month, day);
-
-    return attendanceMap.get(`${employeeId}_${date}`);
+  const attendanceKey = (employeeId, day) => {
+    return formatDate(year, month, day);
   };
 
-  const openAttendanceModal = (employee, day) => {
-    const date = formatDate(year, month, day);
-    const existingRecord = getAttendanceRecord(employee.id, day);
+  const getAttendanceStatus = (employeeId, day) => {
+    const date = attendanceKey(employeeId, day);
 
-    setSummaryDate(date);
+    return attendance?.[employeeId]?.[date] || null;
+  };
+
+  const handleCellClick = (employee, day) => {
+    const date = attendanceKey(employee.id, day);
+
+    const currentStatus =
+      attendance?.[employee.id]?.[date] || STATUS.PRESENT;
 
     setSelectedCell({
       employee,
       day,
       date,
-      existingRecord,
     });
 
     setForm({
-      status: existingRecord?.status || STATUS.PRESENT,
-      reason: existingRecord?.reason || "",
+      employeeId: employee.id,
+      date,
+      status: currentStatus,
     });
-
-    setError("");
-    setSuccess("");
   };
 
-  const closeModal = () => {
-    if (saving) return;
+  const closeAttendanceModal = () => {
+    if (saving) {
+      return;
+    }
 
     setSelectedCell(null);
 
     setForm({
-      status: STATUS.PRESENT,
-      reason: "",
-    });
-  };
-
-  const openBulkModal = (date) => {
-    setSummaryDate(date);
-
-    setBulkForm({
-      date,
-      status: STATUS.PRESENT,
-      reason: "",
-    });
-
-    setBulkModalOpen(true);
-
-    setError("");
-    setSuccess("");
-  };
-
-  const closeBulkModal = () => {
-    if (bulkSaving) return;
-
-    setBulkModalOpen(false);
-
-    setBulkForm({
+      employeeId: "",
       date: "",
       status: STATUS.PRESENT,
-      reason: "",
     });
   };
 
-  const refreshAttendanceAfterSave = async () => {
-    try {
-      const [
-        attendanceResponse,
-        monthlySummaryResponse,
-        dailySummaryResponse,
-      ] = await Promise.all([
-        attendanceApi.getMonthly(year, month),
-        attendanceApi.getMonthlySummary(year, month),
-        attendanceApi.getDailySummary(summaryDate),
-      ]);
-
-      setAttendance(
-        Array.isArray(attendanceResponse) ? attendanceResponse : []
-      );
-
-      setMonthlySummary(
-        Array.isArray(monthlySummaryResponse)
-          ? monthlySummaryResponse
-          : []
-      );
-
-      setDailySummary(dailySummaryResponse || null);
-    } catch (err) {
-      console.error("Failed to refresh attendance data:", err);
-    }
-  };
-
-  const handleSave = async (event) => {
+  const handleSaveAttendance = async (event) => {
     event.preventDefault();
 
-    if (!selectedCell) return;
+    if (!form.employeeId || !form.date || !form.status) {
+      return;
+    }
 
     try {
       setSaving(true);
       setError("");
       setSuccess("");
 
-      const payload = {
-        employeeId: selectedCell.employee.id,
-        attendanceDate: selectedCell.date,
+      await attendanceApi.markAttendance({
+        employeeId: form.employeeId,
+        date: form.date,
         status: form.status,
-        reason: form.reason.trim() || null,
-      };
+      });
 
-      await attendanceApi.create(payload);
+      setSuccess("Attendance updated successfully.");
 
-      await refreshAttendanceAfterSave();
+      closeAttendanceModal();
 
-      setSuccess("Attendance saved successfully.");
-
-      closeModal();
+      await Promise.all([loadAttendance(), loadSummary()]);
     } catch (err) {
       console.error("Failed to save attendance:", err);
-
-      setError(
-        err.response?.data?.message ||
-          "Failed to save attendance. Please try again."
-      );
+      setError("Failed to save attendance.");
     } finally {
       setSaving(false);
     }
   };
 
-  const handleBulkSave = async (event) => {
+  const handleBulkAttendance = async (event) => {
     event.preventDefault();
 
-    if (!bulkForm.date) {
-      setError("Attendance date is required.");
+    if (!bulkDate || !bulkStatus) {
       return;
     }
 
@@ -401,55 +318,24 @@ export default function AttendancePage() {
       setError("");
       setSuccess("");
 
-      const payload = {
-        attendanceDate: bulkForm.date,
-        status: bulkForm.status,
-        reason: bulkForm.reason.trim() || null,
-      };
-
-      const savedRecords = await attendanceApi.bulkCreate(payload);
-
-      setAttendance((current) => {
-        const updated = [...current];
-
-        savedRecords.forEach((savedRecord) => {
-          const existingIndex = updated.findIndex(
-            (record) =>
-              record.employeeId === savedRecord.employeeId &&
-              record.attendanceDate === savedRecord.attendanceDate
-          );
-
-          if (existingIndex === -1) {
-            updated.push(savedRecord);
-          } else {
-            updated[existingIndex] = savedRecord;
-          }
-        });
-
-        return updated;
-      });
-
-      await Promise.all([
-        loadMonthlySummary(),
-        loadDailySummary(bulkForm.date),
-      ]);
-
-      setSummaryDate(bulkForm.date);
-
-      setSuccess(
-        `Attendance marked successfully for ${savedRecords.length} employee${
-          savedRecords.length === 1 ? "" : "s"
-        }.`
+      const requests = employees.map((employee) =>
+        attendanceApi.markAttendance({
+          employeeId: employee.id,
+          date: bulkDate,
+          status: bulkStatus,
+        })
       );
 
-      closeBulkModal();
+      await Promise.all(requests);
+
+      setSuccess("Attendance updated for all employees.");
+
+      setBulkModalOpen(false);
+
+      await Promise.all([loadAttendance(), loadSummary()]);
     } catch (err) {
-      console.error("Failed to mark bulk attendance:", err);
-
-      setError(
-        err.response?.data?.message ||
-          "Failed to mark bulk attendance. Please try again."
-      );
+      console.error("Failed to update bulk attendance:", err);
+      setError("Failed to update attendance for all employees.");
     } finally {
       setBulkSaving(false);
     }
@@ -473,523 +359,365 @@ export default function AttendancePage() {
     }
   };
 
-  const handleResetToCurrentMonth = () => {
-    const currentYear = getCurrentYear();
-    const currentMonth = getCurrentMonth();
-    const today = getTodayDateString();
-
-    setYear(currentYear);
-    setMonth(currentMonth);
-    setSummaryDate(today);
+  const handleCurrentMonth = () => {
+    setYear(today.getFullYear());
+    setMonth(today.getMonth() + 1);
   };
 
-  const monthName = new Date(year, month - 1).toLocaleString(
-    "en-IN",
-    {
-      month: "long",
-    }
-  );
-
-  const activeEmployees = useMemo(
-    () => employees.filter((employee) => !employee.blocked),
-    [employees]
-  );
-
   const filteredEmployees = useMemo(() => {
-    if (!searchQuery.trim()) {
-      return activeEmployees;
+    const query = searchQuery.trim().toLowerCase();
+
+    if (!query) {
+      return employees;
     }
 
-    const query = searchQuery.toLowerCase();
+    return employees.filter((employee) => {
+      const name = String(
+        employee.name ??
+          employee.fullName ??
+          employee.employeeName ??
+          ""
+      ).toLowerCase();
 
-    return activeEmployees.filter(
-      (employee) =>
-        employee.name?.toLowerCase().includes(query) ||
-        employee.mobile?.toLowerCase().includes(query)
-    );
-  }, [activeEmployees, searchQuery]);
+      const employeeCode = String(
+        employee.employeeCode ??
+          employee.code ??
+          employee.empCode ??
+          ""
+      ).toLowerCase();
 
-  const isCurrentMonthSelected =
-    year === getCurrentYear() && month === getCurrentMonth();
+      return name.includes(query) || employeeCode.includes(query);
+    });
+  }, [employees, searchQuery]);
 
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-4 px-3 pb-10 sm:space-y-5 sm:px-4 md:px-6 lg:px-8">
-      <div className="rounded-xl border border-gray-200 bg-white shadow-sm">
-        <div className="flex flex-col gap-4 p-4 sm:p-5 lg:flex-row lg:items-center lg:justify-between">
-          <div className="min-w-0">
-            <div className="flex items-center gap-2.5">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
-                <CalendarDays size={19} />
-              </div>
+    <div className="space-y-5 p-4 sm:p-6">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div>
+          <h1 className="text-xl font-bold text-gray-900 sm:text-2xl">
+            Attendance
+          </h1>
 
-              <div className="min-w-0">
-                <h1 className="truncate text-base font-bold text-gray-900 sm:text-lg">
-                  Attendance Management
-                </h1>
-
-                <p className="mt-0.5 text-[11px] leading-4 text-gray-500 sm:text-xs">
-                  Manage daily employee attendance and remarks.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex w-full items-center gap-2 sm:w-auto">
-            {!isCurrentMonthSelected && (
-              <button
-                type="button"
-                onClick={handleResetToCurrentMonth}
-                className="flex shrink-0 items-center justify-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs font-medium text-gray-700 transition hover:bg-gray-50 active:scale-[0.98]"
-                title="Jump to current month"
-              >
-                <RotateCcw size={13} />
-                <span>Today</span>
-              </button>
-            )}
-
-            <div className="flex min-w-0 flex-1 items-center gap-2 sm:flex-none">
-              <button
-                type="button"
-                onClick={handlePreviousMonth}
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-gray-300 bg-white text-sm font-medium text-gray-700 transition hover:bg-gray-50 active:bg-gray-100"
-                aria-label="Previous Month"
-              >
-                ←
-              </button>
-
-              <div className="min-w-0 flex-1 rounded-lg border border-gray-200 bg-gray-50 px-2 py-2 text-center text-xs font-semibold text-gray-800 sm:w-[150px] sm:flex-none sm:px-4 sm:text-sm">
-                <span className="truncate">
-                  {monthName} {year}
-                </span>
-              </div>
-
-              <button
-                type="button"
-                onClick={handleNextMonth}
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-gray-300 bg-white text-sm font-medium text-gray-700 transition hover:bg-gray-50 active:bg-gray-100"
-                aria-label="Next Month"
-              >
-                →
-              </button>
-            </div>
-          </div>
+          <p className="mt-1 text-sm text-gray-500">
+            Manage employee attendance and monthly records.
+          </p>
         </div>
+
+        <button
+          type="button"
+          onClick={() => setBulkModalOpen(true)}
+          className="inline-flex items-center justify-center rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-gray-800"
+        >
+          Mark Bulk Attendance
+        </button>
       </div>
 
       {error && (
-        <div className="flex min-w-0 items-start justify-between gap-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-xs text-red-700 shadow-sm sm:px-4">
-          <span className="min-w-0 break-words">{error}</span>
-
-          <button
-            type="button"
-            onClick={() => setError("")}
-            className="shrink-0 font-bold text-red-500 hover:text-red-700"
-          >
-            ×
-          </button>
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {error}
         </div>
       )}
 
       {success && (
-        <div className="flex min-w-0 items-start justify-between gap-3 rounded-lg border border-green-200 bg-green-50 px-3 py-2.5 text-xs text-green-700 shadow-sm sm:px-4">
-          <span className="min-w-0 break-words">{success}</span>
-
-          <button
-            type="button"
-            onClick={() => setSuccess("")}
-            className="shrink-0 font-bold text-green-500 hover:text-green-700"
-          >
-            ×
-          </button>
+        <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+          {success}
         </div>
       )}
 
       <div className="rounded-xl border border-gray-200 bg-white shadow-sm">
-  <button
-    type="button"
-    onClick={() => setSummaryOpen((current) => !current)}
-    className="flex w-full items-center justify-between gap-3 px-4 py-3.5 text-left transition hover:bg-gray-50 sm:px-5"
-    aria-expanded={summaryOpen}
-  >
-    <div className="min-w-0">
-      <h2 className="text-sm font-bold text-gray-900 sm:text-base">
-        Attendance Summary
-      </h2>
-
-      <p className="mt-0.5 text-[11px] leading-4 text-gray-500 sm:text-xs">
-        View daily attendance and monthly reports.
-      </p>
-    </div>
-
-    <span
-      className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-gray-50 text-gray-500 transition-transform ${
-        summaryOpen ? "rotate-180" : ""
-      }`}
-    >
-      ↓
-    </span>
-  </button>
-
-  {summaryOpen && (
-    <div className="border-t border-gray-200">
-      <AttendanceSummary
-        dailySummary={dailySummary}
-        monthlySummary={monthlySummary}
-        monthlyTotals={monthlyTotals}
-        loading={summaryLoading}
-        error={summaryError}
-        monthName={monthName}
-        year={year}
-        summaryDate={summaryDate}
-        onRetry={handleSummaryRetry}
-        onDateChange={handleDateSelectionChange}
-      />
-    </div>
-  )}
-</div>
-
-      <div className="rounded-xl border border-gray-200 bg-white p-3 shadow-sm sm:p-4">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <button
+          type="button"
+          onClick={() => setSummaryOpen((current) => !current)}
+          className="flex w-full items-center justify-between gap-3 px-4 py-3.5 text-left transition hover:bg-gray-50 sm:px-5"
+          aria-expanded={summaryOpen}
+        >
           <div className="min-w-0">
-            <div className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-gray-400">
-              Attendance Status
-            </div>
+            <h2 className="text-sm font-bold text-gray-900 sm:text-base">
+              Attendance Summary
+            </h2>
 
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs font-medium text-gray-600">
-              <div className="flex items-center gap-1.5">
-                <span className="flex h-6 w-6 items-center justify-center rounded-md border border-green-200 bg-green-100 text-[10px] font-bold text-green-700">
-                  P
-                </span>
-                <span>Present</span>
-              </div>
-
-              <div className="flex items-center gap-1.5">
-                <span className="flex h-6 w-6 items-center justify-center rounded-md border border-red-200 bg-red-100 text-[10px] font-bold text-red-700">
-                  A
-                </span>
-                <span>Absent</span>
-              </div>
-
-              <div className="flex items-center gap-1.5">
-                <span className="flex h-6 w-6 items-center justify-center rounded-md border border-yellow-200 bg-yellow-100 text-[10px] font-bold text-yellow-700">
-                  H
-                </span>
-                <span>Half Day</span>
-              </div>
-
-              <div className="flex items-center gap-1.5">
-                <span className="flex h-6 w-6 items-center justify-center rounded-md border border-gray-200 bg-gray-50 text-[10px] font-bold text-gray-400">
-                  —
-                </span>
-                <span>Not Marked</span>
-              </div>
-            </div>
+            <p className="mt-0.5 text-[11px] leading-4 text-gray-500 sm:text-xs">
+              View daily attendance and monthly reports.
+            </p>
           </div>
 
-          <div className="w-full lg:w-64">
-            <div className="relative">
-              <Search
-                className="absolute left-3 top-2.5 text-gray-400"
-                size={16}
-              />
+          <span
+            className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-gray-50 text-gray-500 transition-transform ${
+              summaryOpen ? "rotate-180" : ""
+            }`}
+          >
+            ↓
+          </span>
+        </button>
 
-              <input
-                type="text"
-                placeholder="Search employee..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full rounded-lg border border-gray-300 bg-white py-2 pl-9 pr-9 text-xs outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 sm:text-sm"
-              />
-
-              {searchQuery && (
-                <button
-                  type="button"
-                  onClick={() => setSearchQuery("")}
-                  className="absolute right-2.5 top-2.5 text-gray-400 transition hover:text-gray-600"
-                >
-                  <X size={16} />
-                </button>
-              )}
-            </div>
+        {summaryOpen && (
+          <div className="border-t border-gray-200">
+            <AttendanceSummary
+              dailySummary={dailySummary}
+              monthlySummary={monthlySummary}
+              monthlyTotals={monthlySummary}
+              loading={summaryLoading}
+              error={summaryError}
+              monthName={formatMonthYear(year, month)}
+              year={year}
+              summaryDate={summaryDate}
+              onRetry={handleSummaryRetry}
+              onDateChange={handleDateSelectionChange}
+            />
           </div>
-        </div>
+        )}
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
-        {loading ? (
-          <div className="flex min-h-[280px] flex-col items-center justify-center p-8">
-            <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-blue-600" />
+      <div className="rounded-xl border border-gray-200 bg-white shadow-sm">
+        <div className="flex flex-col gap-4 border-b border-gray-200 p-4 sm:p-5 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handlePreviousMonth}
+              className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-600 transition hover:bg-gray-50"
+              aria-label="Previous month"
+            >
+              <ChevronLeft size={18} />
+            </button>
 
-            <p className="mt-4 text-xs text-gray-500 sm:text-sm">
-              Loading attendance matrix...
-            </p>
-          </div>
-        ) : activeEmployees.length === 0 ? (
-          <div className="flex min-h-[280px] flex-col items-center justify-center px-5 text-center">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 text-lg">
-              📅
+            <div className="min-w-[170px] text-center">
+              <h2 className="text-base font-bold text-gray-900">
+                {formatMonthYear(year, month)}
+              </h2>
             </div>
-
-            <h3 className="mt-4 text-sm font-semibold text-gray-900">
-              No active employees found
-            </h3>
-
-            <p className="mt-1 max-w-sm text-xs text-gray-500 sm:text-sm">
-              Please register an active employee before marking
-              attendance.
-            </p>
-          </div>
-        ) : filteredEmployees.length === 0 ? (
-          <div className="flex min-h-[200px] flex-col items-center justify-center px-5 text-center">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100">
-              <Search size={17} className="text-gray-400" />
-            </div>
-
-            <p className="mt-3 text-xs text-gray-500 sm:text-sm">
-              No employees match "{searchQuery}"
-            </p>
 
             <button
               type="button"
-              onClick={() => setSearchQuery("")}
-              className="mt-2 text-xs font-medium text-blue-600 hover:underline"
+              onClick={handleNextMonth}
+              className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-600 transition hover:bg-gray-50"
+              aria-label="Next month"
             >
-              Clear search filter
+              <ChevronRight size={18} />
+            </button>
+
+            <button
+              type="button"
+              onClick={handleCurrentMonth}
+              className="ml-1 rounded-lg border border-gray-200 px-3 py-2 text-xs font-semibold text-gray-700 transition hover:bg-gray-50"
+            >
+              Current
             </button>
           </div>
-        ) : (
-          <div className="relative overflow-x-auto">
-            <table className="min-w-max border-collapse">
-              <thead>
-                <tr className="border-b border-gray-200 bg-gray-50">
-                  <th className="sticky left-0 z-30 min-w-[180px] border-r border-gray-200 bg-gray-50 px-3 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-gray-500 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.08)] sm:min-w-[220px] sm:px-4">
-                    Employee ({filteredEmployees.length})
-                  </th>
 
-                  {days.map((day) => {
-                    const date = formatDate(year, month, day);
+          <div className="relative w-full sm:max-w-xs">
+            <Search
+              size={17}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+            />
 
-                    const dayOfWeek = new Date(
-                      year,
-                      month - 1,
-                      day
-                    ).toLocaleDateString("en-IN", {
-                      weekday: "short",
-                    });
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              placeholder="Search employee..."
+              className="w-full rounded-lg border border-gray-200 py-2.5 pl-9 pr-3 text-sm outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-gray-100"
+            />
+          </div>
+        </div>
 
-                    const isWeekend =
-                      dayOfWeek === "Sun" || dayOfWeek === "Sat";
+        <div className="flex flex-wrap gap-3 border-b border-gray-200 px-4 py-3 sm:px-5">
+          {Object.entries(STATUS_LABEL).map(([status, label]) => (
+            <div key={status} className="flex items-center gap-2">
+              <span
+                className={`h-3 w-3 rounded-full border ${STATUS_STYLE[status]}`}
+              />
 
-                    return (
-                      <th
-                        key={day}
-                        className={`min-w-[54px] border-r border-gray-200 px-1 py-1.5 text-center sm:min-w-[62px] ${
-                          isWeekend ? "bg-gray-100" : ""
-                        }`}
-                      >
-                        <div className="text-xs font-semibold text-gray-800 sm:text-sm">
-                          {day}
-                        </div>
+              <span className="text-xs text-gray-600">{label}</span>
+            </div>
+          ))}
+        </div>
 
-                        <div className="text-[9px] font-normal uppercase text-gray-400 sm:text-[10px]">
-                          {dayOfWeek}
-                        </div>
+        <div className="relative overflow-x-auto">
+          {loading && (
+            <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70">
+              <div className="rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm text-gray-600 shadow-sm">
+                Loading attendance...
+              </div>
+            </div>
+          )}
 
-                        <button
-                          type="button"
-                          onClick={() => openBulkModal(date)}
-                          disabled={activeEmployees.length === 0}
-                          title={`Mark attendance for all employees on ${date}`}
-                          className="mx-auto mt-1 flex h-6 w-6 items-center justify-center rounded-md border border-blue-200 bg-blue-50 text-blue-600 transition hover:border-blue-300 hover:bg-blue-100 hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
-                        >
-                          <Users size={12} />
-                        </button>
-                      </th>
-                    );
-                  })}
-                </tr>
-              </thead>
+          <table className="min-w-max w-full border-collapse">
+            <thead>
+              <tr className="bg-gray-50">
+                <th className="sticky left-0 z-20 min-w-[190px] border-b border-r border-gray-200 bg-gray-50 px-4 py-3 text-left text-xs font-bold text-gray-700">
+                  Employee
+                </th>
 
-              <tbody>
-                {filteredEmployees.map((employee) => (
-                  <tr
-                    key={employee.id}
-                    className="border-b border-gray-100 last:border-b-0 hover:bg-gray-50/50"
-                  >
-                    <td className="sticky left-0 z-20 border-r border-gray-200 bg-white px-3 py-2.5 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.08)] sm:px-4 sm:py-3">
-                      <div
-                        className="max-w-[150px] truncate text-xs font-medium text-gray-900 sm:max-w-[200px]"
-                        title={employee.name}
-                      >
-                        {employee.name}
+                {days.map((day) => {
+                  const date = new Date(
+                    `${formatDate(year, month, day)}T00:00:00`
+                  );
+
+                  const weekday = date.toLocaleDateString("en-IN", {
+                    weekday: "short",
+                  });
+
+                  return (
+                    <th
+                      key={day}
+                      className="min-w-[48px] border-b border-gray-200 px-2 py-3 text-center"
+                    >
+                      <div className="text-xs font-bold text-gray-700">
+                        {day}
                       </div>
 
-                      <div className="mt-0.5 max-w-[150px] truncate text-[10px] text-gray-500 sm:max-w-[200px] sm:text-xs">
-                        {employee.mobile || "No mobile"}
+                      <div className="mt-0.5 text-[10px] text-gray-400">
+                        {weekday}
+                      </div>
+                    </th>
+                  );
+                })}
+              </tr>
+            </thead>
+
+            <tbody>
+              {filteredEmployees.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={days.length + 1}
+                    className="px-4 py-10 text-center text-sm text-gray-500"
+                  >
+                    No employees found.
+                  </td>
+                </tr>
+              ) : (
+                filteredEmployees.map((employee) => (
+                  <tr
+                    key={employee.id}
+                    className="border-b border-gray-100 last:border-b-0"
+                  >
+                    <td className="sticky left-0 z-10 border-r border-gray-200 bg-white px-4 py-3">
+                      <div className="min-w-[150px]">
+                        <div className="truncate text-sm font-semibold text-gray-900">
+                          {employee.name ??
+                            employee.fullName ??
+                            employee.employeeName ??
+                            "Unnamed Employee"}
+                        </div>
+
+                        {(employee.employeeCode ||
+                          employee.code ||
+                          employee.empCode) && (
+                          <div className="mt-0.5 text-[11px] text-gray-400">
+                            {employee.employeeCode ??
+                              employee.code ??
+                              employee.empCode}
+                          </div>
+                        )}
                       </div>
                     </td>
 
                     {days.map((day) => {
-                      const record = getAttendanceRecord(
+                      const status = getAttendanceStatus(
                         employee.id,
                         day
-                      );
-
-                      const hasReason = Boolean(
-                        record?.reason?.trim()
                       );
 
                       return (
                         <td
                           key={day}
-                          className="border-r border-gray-100 p-1 text-center sm:p-1.5"
+                          className="border-r border-gray-100 px-1 py-2 text-center last:border-r-0"
                         >
                           <button
                             type="button"
                             onClick={() =>
-                              openAttendanceModal(employee, day)
+                              handleCellClick(employee, day)
                             }
-                            title={
-                              record
-                                ? `${STATUS_LABEL[record.status]}${
-                                    hasReason
-                                      ? ` — ${record.reason}`
-                                      : ""
-                                  }`
-                                : "Mark attendance"
-                            }
-                            className={`relative mx-auto flex h-8 w-8 items-center justify-center rounded-md border text-xs font-bold transition hover:scale-105 sm:h-9 sm:w-9 ${
-                              record
-                                ? STATUS_STYLE[record.status]
-                                : "border-gray-200 bg-gray-50 text-gray-300 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-500"
+                            className={`mx-auto flex h-8 w-8 items-center justify-center rounded-lg border text-[10px] font-bold transition ${
+                              status
+                                ? STATUS_STYLE[status]
+                                : "border-gray-200 bg-gray-50 text-gray-300 hover:bg-gray-100"
                             }`}
+                            title={
+                              status
+                                ? STATUS_LABEL[status]
+                                : "Not marked"
+                            }
                           >
-                            {record?.status === STATUS.PRESENT && (
-                              <Check size={15} />
-                            )}
-
-                            {record?.status === STATUS.ABSENT && (
-                              <X size={15} />
-                            )}
-
-                            {record?.status === STATUS.HALF_DAY && (
-                              <Clock size={14} />
-                            )}
-
-                            {!record && "—"}
-
-                            {hasReason && (
-                              <span className="absolute -right-1 -top-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-blue-600 text-white shadow-sm">
-                                <FileText size={8} />
-                              </span>
-                            )}
+                            {status
+                              ? status === STATUS.HALF_DAY
+                                ? "H"
+                                : status.charAt(0)
+                              : "—"}
                           </button>
                         </td>
                       );
                     })}
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {selectedCell && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-0 backdrop-blur-[2px] sm:items-center sm:p-4">
-          <div className="max-h-[92vh] w-full overflow-y-auto rounded-t-2xl bg-white shadow-xl sm:max-w-md sm:rounded-xl">
-            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-200 bg-gray-50 px-4 py-3.5 sm:px-5 sm:py-4">
-              <div className="min-w-0 pr-3">
-                <h2 className="text-sm font-bold text-gray-900 sm:text-base">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-md rounded-xl bg-white shadow-xl">
+            <div className="flex items-center justify-between border-b border-gray-200 px-5 py-4">
+              <div>
+                <h3 className="text-base font-bold text-gray-900">
                   Mark Attendance
-                </h2>
+                </h3>
 
-                <p className="mt-0.5 truncate text-[11px] text-gray-500 sm:text-xs">
-                  {selectedCell.employee.name} · {selectedCell.date}
+                <p className="mt-0.5 text-xs text-gray-500">
+                  {selectedCell.employee.name ??
+                    selectedCell.employee.fullName ??
+                    selectedCell.employee.employeeName ??
+                    "Employee"}{" "}
+                  · {selectedCell.date}
                 </p>
               </div>
 
               <button
                 type="button"
-                onClick={closeModal}
-                disabled={saving}
-                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-200/60 hover:text-gray-700 disabled:cursor-not-allowed"
+                onClick={closeAttendanceModal}
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 transition hover:bg-gray-100"
               >
                 <X size={18} />
               </button>
             </div>
 
             <form
-              onSubmit={handleSave}
-              className="space-y-5 p-4 sm:p-5"
+              onSubmit={handleSaveAttendance}
+              className="space-y-4 p-5"
             >
               <div>
-                <label className="mb-2 block text-[10px] font-semibold uppercase tracking-wider text-gray-400 sm:text-xs">
-                  Attendance Status
+                <label className="mb-1.5 block text-xs font-semibold text-gray-700">
+                  Status
                 </label>
 
-                <div className="grid grid-cols-3 gap-2">
-                  {Object.entries(STATUS_LABEL).map(
-                    ([status, label]) => (
-                      <button
-                        key={status}
-                        type="button"
-                        onClick={() =>
-                          setForm((current) => ({
-                            ...current,
-                            status,
-                          }))
-                        }
-                        className={`min-h-[42px] rounded-lg border px-2 py-2 text-[11px] font-semibold transition sm:text-xs ${
-                          form.status === status
-                            ? STATUS_STYLE[status]
-                            : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
-                        }`}
-                      >
-                        {label}
-                      </button>
-                    )
-                  )}
-                </div>
-              </div>
-
-              <div>
-                <label
-                  htmlFor="attendance-reason"
-                  className="mb-2 block text-[10px] font-semibold uppercase tracking-wider text-gray-400 sm:text-xs"
-                >
-                  Remarks{" "}
-                  <span className="font-normal text-gray-400">
-                    (Optional)
-                  </span>
-                </label>
-
-                <textarea
-                  id="attendance-reason"
-                  value={form.reason}
+                <select
+                  value={form.status}
                   onChange={(event) =>
                     setForm((current) => ({
                       ...current,
-                      reason: event.target.value,
+                      status: event.target.value,
                     }))
                   }
-                  rows={4}
-                  maxLength={255}
-                  placeholder="Enter remarks if required..."
-                  className="w-full resize-none rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                />
-
-                <div className="mt-1 text-right text-[10px] text-gray-400 sm:text-xs">
-                  {form.reason.length}/255
-                </div>
+                  className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-gray-400 focus:ring-2 focus:ring-gray-100"
+                >
+                  {Object.entries(STATUS_LABEL).map(
+                    ([status, label]) => (
+                      <option key={status} value={status}>
+                        {label}
+                      </option>
+                    )
+                  )}
+                </select>
               </div>
 
-              <div className="flex flex-col-reverse gap-2 border-t border-gray-100 pt-4 sm:flex-row sm:justify-end">
+              <div className="flex justify-end gap-2">
                 <button
                   type="button"
-                  onClick={closeModal}
+                  onClick={closeAttendanceModal}
                   disabled={saving}
-                  className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-xs font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed sm:w-auto sm:py-2 sm:text-sm"
+                  className="rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 disabled:opacity-50"
                 >
                   Cancel
                 </button>
@@ -997,7 +725,7 @@ export default function AttendancePage() {
                 <button
                   type="submit"
                   disabled={saving}
-                  className="w-full rounded-lg bg-slate-800 px-5 py-2.5 text-xs font-medium text-white transition hover:bg-slate-900 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:py-2 sm:text-sm"
+                  className="rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {saving ? "Saving..." : "Save Attendance"}
                 </button>
@@ -1008,134 +736,82 @@ export default function AttendancePage() {
       )}
 
       {bulkModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-0 backdrop-blur-[2px] sm:items-center sm:p-4">
-          <div className="max-h-[92vh] w-full overflow-y-auto rounded-t-2xl bg-white shadow-xl sm:max-w-md sm:rounded-xl">
-            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-200 bg-gray-50 px-4 py-3.5 sm:px-5 sm:py-4">
-              <div className="min-w-0 pr-3">
-                <h2 className="text-sm font-bold text-gray-900 sm:text-base">
-                  Mark Bulk Attendance
-                </h2>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-md rounded-xl bg-white shadow-xl">
+            <div className="flex items-center justify-between border-b border-gray-200 px-5 py-4">
+              <div>
+                <h3 className="text-base font-bold text-gray-900">
+                  Bulk Attendance
+                </h3>
 
-                <p className="mt-0.5 text-[11px] text-gray-500 sm:text-xs">
-                  Mark attendance for all active employees.
+                <p className="mt-0.5 text-xs text-gray-500">
+                  Mark the same status for all employees.
                 </p>
               </div>
 
               <button
                 type="button"
-                onClick={closeBulkModal}
-                disabled={bulkSaving}
-                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-200/60 hover:text-gray-700 disabled:cursor-not-allowed"
+                onClick={() => setBulkModalOpen(false)}
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 transition hover:bg-gray-100"
               >
                 <X size={18} />
               </button>
             </div>
 
             <form
-              onSubmit={handleBulkSave}
-              className="space-y-5 p-4 sm:p-5"
+              onSubmit={handleBulkAttendance}
+              className="space-y-4 p-5"
             >
-              <div className="rounded-lg border border-blue-100 bg-blue-50 px-3 py-3">
-                <div className="text-[10px] font-semibold uppercase tracking-wider text-blue-500">
-                  Attendance Date
-                </div>
+              <div>
+                <label className="mb-1.5 block text-xs font-semibold text-gray-700">
+                  Date
+                </label>
 
-                <div className="mt-1 text-sm font-bold text-blue-900">
-                  {bulkForm.date
-                    ? new Date(
-                        `${bulkForm.date}T00:00:00`
-                      ).toLocaleDateString("en-IN", {
-                        day: "numeric",
-                        month: "long",
-                        year: "numeric",
-                      })
-                    : "-"}
-                </div>
-              </div>
+                <div className="relative">
+                  <CalendarDays
+                    size={17}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                  />
 
-              <div className="flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 px-3 py-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-100 text-blue-600">
-                  <Users size={17} />
-                </div>
-
-                <div>
-                  <p className="text-xs font-semibold text-gray-900">
-                    {activeEmployees.length} active employees
-                  </p>
-
-                  <p className="mt-0.5 text-[10px] text-gray-500">
-                    Attendance will be marked for everyone.
-                  </p>
+                  <input
+                    type="date"
+                    value={bulkDate}
+                    onChange={(event) =>
+                      setBulkDate(event.target.value)
+                    }
+                    className="w-full rounded-lg border border-gray-200 py-2.5 pl-9 pr-3 text-sm outline-none focus:border-gray-400 focus:ring-2 focus:ring-gray-100"
+                  />
                 </div>
               </div>
 
               <div>
-                <label className="mb-2 block text-[10px] font-semibold uppercase tracking-wider text-gray-400 sm:text-xs">
-                  Status for Everyone
+                <label className="mb-1.5 block text-xs font-semibold text-gray-700">
+                  Status
                 </label>
 
-                <div className="grid grid-cols-3 gap-2">
+                <select
+                  value={bulkStatus}
+                  onChange={(event) =>
+                    setBulkStatus(event.target.value)
+                  }
+                  className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-gray-400 focus:ring-2 focus:ring-gray-100"
+                >
                   {Object.entries(STATUS_LABEL).map(
                     ([status, label]) => (
-                      <button
-                        key={status}
-                        type="button"
-                        onClick={() =>
-                          setBulkForm((current) => ({
-                            ...current,
-                            status,
-                          }))
-                        }
-                        className={`min-h-[42px] rounded-lg border px-2 py-2 text-[11px] font-semibold transition sm:text-xs ${
-                          bulkForm.status === status
-                            ? STATUS_STYLE[status]
-                            : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
-                        }`}
-                      >
+                      <option key={status} value={status}>
                         {label}
-                      </button>
+                      </option>
                     )
                   )}
-                </div>
+                </select>
               </div>
 
-              <div>
-                <label
-                  htmlFor="bulk-reason"
-                  className="mb-2 block text-[10px] font-semibold uppercase tracking-wider text-gray-400 sm:text-xs"
-                >
-                  Remarks{" "}
-                  <span className="font-normal text-gray-400">
-                    (Optional - applies to all)
-                  </span>
-                </label>
-
-                <textarea
-                  id="bulk-reason"
-                  value={bulkForm.reason}
-                  onChange={(event) =>
-                    setBulkForm((current) => ({
-                      ...current,
-                      reason: event.target.value,
-                    }))
-                  }
-                  rows={3}
-                  maxLength={255}
-                  placeholder="Enter remarks if required..."
-                  className="w-full resize-none rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                />
-
-                <div className="mt-1 text-right text-[10px] text-gray-400 sm:text-xs">
-                  {bulkForm.reason.length}/255
-                </div>
-              </div>
-
-              <div className="flex flex-col-reverse gap-2 border-t border-gray-100 pt-4 sm:flex-row sm:justify-end">
+              <div className="flex justify-end gap-2">
                 <button
                   type="button"
-                  onClick={closeBulkModal}
+                  onClick={() => setBulkModalOpen(false)}
                   disabled={bulkSaving}
-                  className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-xs font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed sm:w-auto sm:py-2 sm:text-sm"
+                  className="rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 disabled:opacity-50"
                 >
                   Cancel
                 </button>
@@ -1143,11 +819,9 @@ export default function AttendancePage() {
                 <button
                   type="submit"
                   disabled={bulkSaving}
-                  className="w-full rounded-lg bg-slate-800 px-5 py-2.5 text-xs font-medium text-white transition hover:bg-slate-900 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:py-2 sm:text-sm"
+                  className="rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  {bulkSaving
-                    ? "Marking..."
-                    : "Mark Bulk Attendance"}
+                  {bulkSaving ? "Saving..." : "Mark Attendance"}
                 </button>
               </div>
             </form>
@@ -1156,4 +830,4 @@ export default function AttendancePage() {
       )}
     </div>
   );
-}
+};
