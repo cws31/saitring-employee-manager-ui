@@ -604,6 +604,34 @@ export default function AttendancePage() {
         </div>
       )}
 
+      <div className="rounded-xl border border-gray-200 bg-white shadow-sm">
+  <button
+    type="button"
+    onClick={() => setSummaryOpen((current) => !current)}
+    className="flex w-full items-center justify-between gap-3 px-4 py-3.5 text-left transition hover:bg-gray-50 sm:px-5"
+    aria-expanded={summaryOpen}
+  >
+    <div className="min-w-0">
+      <h2 className="text-sm font-bold text-gray-900 sm:text-base">
+        Attendance Summary
+      </h2>
+
+      <p className="mt-0.5 text-[11px] leading-4 text-gray-500 sm:text-xs">
+        View daily attendance and monthly reports.
+      </p>
+    </div>
+
+    <span
+      className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-gray-50 text-gray-500 transition-transform ${
+        summaryOpen ? "rotate-180" : ""
+      }`}
+    >
+      ↓
+    </span>
+  </button>
+
+  {summaryOpen && (
+    <div className="border-t border-gray-200">
       <AttendanceSummary
         dailySummary={dailySummary}
         monthlySummary={monthlySummary}
@@ -616,6 +644,9 @@ export default function AttendancePage() {
         onRetry={handleSummaryRetry}
         onDateChange={handleDateSelectionChange}
       />
+    </div>
+  )}
+</div>
 
       <div className="rounded-xl border border-gray-200 bg-white p-3 shadow-sm sm:p-4">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
