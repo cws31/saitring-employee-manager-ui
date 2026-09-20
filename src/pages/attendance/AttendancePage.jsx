@@ -33,7 +33,17 @@ const STATUS_STYLE = {
 };
 
 const getCurrentYear = () => new Date().getFullYear();
+
 const getCurrentMonth = () => new Date().getMonth() + 1;
+
+const getTodayDateString = () => {
+  const d = new Date();
+
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(
+    2,
+    "0"
+  )}-${String(d.getDate()).padStart(2, "0")}`;
+};
 
 const formatDate = (year, month, day) => {
   return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(
@@ -46,11 +56,6 @@ const getDaysInMonth = (year, month) => {
   return new Date(year, month, 0).getDate();
 };
 
-const getTodayDateString = () => {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-};
-
 export default function AttendancePage() {
   const [employees, setEmployees] = useState([]);
   const [attendance, setAttendance] = useState([]);
@@ -60,11 +65,11 @@ export default function AttendancePage() {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [bulkSaving, setBulkSaving] = useState(false);
 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  // Summary States - Default to current date
   const [dailySummary, setDailySummary] = useState(null);
   const [monthlySummary, setMonthlySummary] = useState([]);
   const [summaryLoading, setSummaryLoading] = useState(false);
@@ -80,7 +85,7 @@ export default function AttendancePage() {
   });
 
   const [bulkModalOpen, setBulkModalOpen] = useState(false);
-  const [bulkSaving, setBulkSaving] = useState(false);
+
   const [bulkForm, setBulkForm] = useState({
     date: "",
     status: STATUS.PRESENT,
@@ -97,9 +102,10 @@ export default function AttendancePage() {
   const monthlyTotals = useMemo(() => {
     return monthlySummary.reduce(
       (totals, record) => {
-        totals.present += Number(record.present || 0);
-        totals.absent += Number(record.absent || 0);
-        totals.halfPresent += Number(record.halfPresent || 0);
+        totals.present += Number(record.present ?? 0);
+        totals.absent += Number(record.absent ?? 0);
+        totals.halfPresent += Number(record.halfPresent ?? 0);
+
         return totals;
       },
       {
@@ -110,62 +116,58 @@ export default function AttendancePage() {
     );
   }, [monthlySummary]);
 
-  const loadDailySummary = async (dateToLoad) => {
+  const loadDailySummary = async (date) => {
+    if (!date) return;
+
     try {
-      const response = await attendanceApi.getDailySummary(dateToLoad);
-      setDailySummary(response);
+      const response = await attendanceApi.getDailySummary(date);
+
+      setDailySummary(response || null);
+      setSummaryError("");
     } catch (err) {
       console.error("Failed to load daily attendance summary:", err);
+
+      setDailySummary(null);
+
+      setSummaryError(
+        err.response?.data?.message ||
+          "Unable to load daily attendance summary."
+      );
     }
   };
 
   const loadMonthlySummary = async () => {
     try {
       const response = await attendanceApi.getMonthlySummary(year, month);
+
       setMonthlySummary(Array.isArray(response) ? response : []);
     } catch (err) {
       console.error("Failed to load monthly attendance summary:", err);
+
+      setMonthlySummary([]);
+
       throw err;
     }
   };
 
-  const loadAttendanceSummary = async () => {
-    setSummaryLoading(true);
-    setSummaryError("");
-    try {
-      await Promise.all([
-        loadDailySummary(summaryDate),
-        loadMonthlySummary(),
-      ]);
-    } catch (err) {
-      setSummaryError(
-        err.response?.data?.message || "Unable to load attendance summary."
-      );
-    } finally {
-      setSummaryLoading(false);
-    }
-  };
-
-  const handleDateSelectionChange = async (newDate) => {
-    setSummaryDate(newDate);
-    // Automatically extract year and month from selected date if it belongs to another month
-    const [selectedYear, selectedMonth] = newDate.split("-").map(Number);
-    if (selectedYear && selectedMonth && (selectedYear !== year || selectedMonth !== month)) {
-      setYear(selectedYear);
-      setMonth(selectedMonth);
-    } else {
-      await loadDailySummary(newDate);
-    }
-  };
-
-  const loadData = async () => {
+  const loadAttendanceData = async () => {
     try {
       setLoading(true);
-      setError("");
+      setSummaryLoading(true);
 
-      const [employeesResponse, attendanceResponse] = await Promise.all([
+      setError("");
+      setSummaryError("");
+
+      const [
+        employeesResponse,
+        attendanceResponse,
+        monthlySummaryResponse,
+        dailySummaryResponse,
+      ] = await Promise.all([
         employeeApi.getAll(),
         attendanceApi.getMonthly(year, month),
+        attendanceApi.getMonthlySummary(year, month),
+        attendanceApi.getDailySummary(summaryDate),
       ]);
 
       setEmployees(
@@ -175,32 +177,81 @@ export default function AttendancePage() {
       setAttendance(
         Array.isArray(attendanceResponse) ? attendanceResponse : []
       );
+
+      setMonthlySummary(
+        Array.isArray(monthlySummaryResponse)
+          ? monthlySummaryResponse
+          : []
+      );
+
+      setDailySummary(dailySummaryResponse || null);
     } catch (err) {
       console.error("Failed to load attendance data:", err);
 
-      setError(
+      const message =
         err.response?.data?.message ||
-          "Failed to load attendance data. Please try again."
-      );
+        "Failed to load attendance data. Please try again.";
+
+      setError(message);
+      setSummaryError(message);
     } finally {
       setLoading(false);
+      setSummaryLoading(false);
     }
   };
 
   useEffect(() => {
-    loadData();
-    loadMonthlySummary();
+    loadAttendanceData();
   }, [year, month]);
 
   useEffect(() => {
     loadDailySummary(summaryDate);
   }, [summaryDate]);
 
+  const handleDateSelectionChange = (newDate) => {
+    if (!newDate) return;
+
+    setSummaryDate(newDate);
+
+    const [selectedYear, selectedMonth] = newDate
+      .split("-")
+      .map(Number);
+
+    if (
+      selectedYear &&
+      selectedMonth &&
+      (selectedYear !== year || selectedMonth !== month)
+    ) {
+      setYear(selectedYear);
+      setMonth(selectedMonth);
+    }
+  };
+
+  const handleSummaryRetry = async () => {
+    try {
+      setSummaryLoading(true);
+      setSummaryError("");
+
+      await Promise.all([
+        loadDailySummary(summaryDate),
+        loadMonthlySummary(),
+      ]);
+    } catch (err) {
+      setSummaryError(
+        err.response?.data?.message ||
+          "Unable to load attendance summary."
+      );
+    } finally {
+      setSummaryLoading(false);
+    }
+  };
+
   const attendanceMap = useMemo(() => {
     const map = new Map();
 
     attendance.forEach((record) => {
       const key = `${record.employeeId}_${record.attendanceDate}`;
+
       map.set(key, record);
     });
 
@@ -209,6 +260,7 @@ export default function AttendancePage() {
 
   const getAttendanceRecord = (employeeId, day) => {
     const date = formatDate(year, month, day);
+
     return attendanceMap.get(`${employeeId}_${date}`);
   };
 
@@ -217,7 +269,6 @@ export default function AttendancePage() {
     const existingRecord = getAttendanceRecord(employee.id, day);
 
     setSummaryDate(date);
-    loadDailySummary(date);
 
     setSelectedCell({
       employee,
@@ -248,26 +299,57 @@ export default function AttendancePage() {
 
   const openBulkModal = (date) => {
     setSummaryDate(date);
-    loadDailySummary(date);
 
     setBulkForm({
       date,
       status: STATUS.PRESENT,
       reason: "",
     });
+
     setBulkModalOpen(true);
+
     setError("");
     setSuccess("");
   };
 
   const closeBulkModal = () => {
     if (bulkSaving) return;
+
     setBulkModalOpen(false);
+
     setBulkForm({
       date: "",
       status: STATUS.PRESENT,
       reason: "",
     });
+  };
+
+  const refreshAttendanceAfterSave = async () => {
+    try {
+      const [
+        attendanceResponse,
+        monthlySummaryResponse,
+        dailySummaryResponse,
+      ] = await Promise.all([
+        attendanceApi.getMonthly(year, month),
+        attendanceApi.getMonthlySummary(year, month),
+        attendanceApi.getDailySummary(summaryDate),
+      ]);
+
+      setAttendance(
+        Array.isArray(attendanceResponse) ? attendanceResponse : []
+      );
+
+      setMonthlySummary(
+        Array.isArray(monthlySummaryResponse)
+          ? monthlySummaryResponse
+          : []
+      );
+
+      setDailySummary(dailySummaryResponse || null);
+    } catch (err) {
+      console.error("Failed to refresh attendance data:", err);
+    }
   };
 
   const handleSave = async (event) => {
@@ -287,28 +369,12 @@ export default function AttendancePage() {
         reason: form.reason.trim() || null,
       };
 
-      const savedRecord = await attendanceApi.create(payload);
+      await attendanceApi.create(payload);
 
-      setAttendance((current) => {
-        const existingIndex = current.findIndex(
-          (record) =>
-            record.employeeId === savedRecord.employeeId &&
-            record.attendanceDate === savedRecord.attendanceDate
-        );
-
-        if (existingIndex === -1) {
-          return [...current, savedRecord];
-        }
-
-        const updated = [...current];
-        updated[existingIndex] = savedRecord;
-
-        return updated;
-      });
-
-      await loadAttendanceSummary();
+      await refreshAttendanceAfterSave();
 
       setSuccess("Attendance saved successfully.");
+
       closeModal();
     } catch (err) {
       console.error("Failed to save attendance:", err);
@@ -324,47 +390,62 @@ export default function AttendancePage() {
 
   const handleBulkSave = async (event) => {
     event.preventDefault();
+
     if (!bulkForm.date) {
       setError("Attendance date is required.");
       return;
     }
+
     try {
       setBulkSaving(true);
       setError("");
       setSuccess("");
+
       const payload = {
         attendanceDate: bulkForm.date,
         status: bulkForm.status,
         reason: bulkForm.reason.trim() || null,
       };
+
       const savedRecords = await attendanceApi.bulkCreate(payload);
+
       setAttendance((current) => {
         const updated = [...current];
+
         savedRecords.forEach((savedRecord) => {
           const existingIndex = updated.findIndex(
             (record) =>
               record.employeeId === savedRecord.employeeId &&
               record.attendanceDate === savedRecord.attendanceDate
           );
+
           if (existingIndex === -1) {
             updated.push(savedRecord);
           } else {
             updated[existingIndex] = savedRecord;
           }
         });
+
         return updated;
       });
 
-      await loadAttendanceSummary();
+      await Promise.all([
+        loadMonthlySummary(),
+        loadDailySummary(bulkForm.date),
+      ]);
+
+      setSummaryDate(bulkForm.date);
 
       setSuccess(
         `Attendance marked successfully for ${savedRecords.length} employee${
           savedRecords.length === 1 ? "" : "s"
         }.`
       );
+
       closeBulkModal();
     } catch (err) {
       console.error("Failed to mark bulk attendance:", err);
+
       setError(
         err.response?.data?.message ||
           "Failed to mark bulk attendance. Please try again."
@@ -393,14 +474,21 @@ export default function AttendancePage() {
   };
 
   const handleResetToCurrentMonth = () => {
-    setYear(getCurrentYear());
-    setMonth(getCurrentMonth());
-    setSummaryDate(getTodayDateString());
+    const currentYear = getCurrentYear();
+    const currentMonth = getCurrentMonth();
+    const today = getTodayDateString();
+
+    setYear(currentYear);
+    setMonth(currentMonth);
+    setSummaryDate(today);
   };
 
-  const monthName = new Date(year, month - 1).toLocaleString("en-IN", {
-    month: "long",
-  });
+  const monthName = new Date(year, month - 1).toLocaleString(
+    "en-IN",
+    {
+      month: "long",
+    }
+  );
 
   const activeEmployees = useMemo(
     () => employees.filter((employee) => !employee.blocked),
@@ -408,14 +496,16 @@ export default function AttendancePage() {
   );
 
   const filteredEmployees = useMemo(() => {
-    if (!searchQuery.trim()) return activeEmployees;
+    if (!searchQuery.trim()) {
+      return activeEmployees;
+    }
 
     const query = searchQuery.toLowerCase();
 
     return activeEmployees.filter(
-      (emp) =>
-        emp.name?.toLowerCase().includes(query) ||
-        emp.mobile?.toLowerCase().includes(query)
+      (employee) =>
+        employee.name?.toLowerCase().includes(query) ||
+        employee.mobile?.toLowerCase().includes(query)
     );
   }, [activeEmployees, searchQuery]);
 
@@ -457,7 +547,7 @@ export default function AttendancePage() {
               </button>
             )}
 
-            <div className="flex min-w-0 flex-1 items-center gap-1 sm:flex-none">
+            <div className="flex min-w-0 flex-1 items-center gap-2 sm:flex-none">
               <button
                 type="button"
                 onClick={handlePreviousMonth}
@@ -489,6 +579,7 @@ export default function AttendancePage() {
       {error && (
         <div className="flex min-w-0 items-start justify-between gap-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-xs text-red-700 shadow-sm sm:px-4">
           <span className="min-w-0 break-words">{error}</span>
+
           <button
             type="button"
             onClick={() => setError("")}
@@ -502,6 +593,7 @@ export default function AttendancePage() {
       {success && (
         <div className="flex min-w-0 items-start justify-between gap-3 rounded-lg border border-green-200 bg-green-50 px-3 py-2.5 text-xs text-green-700 shadow-sm sm:px-4">
           <span className="min-w-0 break-words">{success}</span>
+
           <button
             type="button"
             onClick={() => setSuccess("")}
@@ -512,7 +604,6 @@ export default function AttendancePage() {
         </div>
       )}
 
-      {/* Attendance Summary Component Integration */}
       <AttendanceSummary
         dailySummary={dailySummary}
         monthlySummary={monthlySummary}
@@ -522,9 +613,8 @@ export default function AttendancePage() {
         monthName={monthName}
         year={year}
         summaryDate={summaryDate}
-        onRetry={loadAttendanceSummary}
+        onRetry={handleSummaryRetry}
         onDateChange={handleDateSelectionChange}
-        employees={employees}
       />
 
       <div className="rounded-xl border border-gray-200 bg-white p-3 shadow-sm sm:p-4">
@@ -598,6 +688,7 @@ export default function AttendancePage() {
         {loading ? (
           <div className="flex min-h-[280px] flex-col items-center justify-center p-8">
             <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-blue-600" />
+
             <p className="mt-4 text-xs text-gray-500 sm:text-sm">
               Loading attendance matrix...
             </p>
@@ -607,11 +698,14 @@ export default function AttendancePage() {
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 text-lg">
               📅
             </div>
+
             <h3 className="mt-4 text-sm font-semibold text-gray-900">
               No active employees found
             </h3>
+
             <p className="mt-1 max-w-sm text-xs text-gray-500 sm:text-sm">
-              Please register an active employee before marking attendance.
+              Please register an active employee before marking
+              attendance.
             </p>
           </div>
         ) : filteredEmployees.length === 0 ? (
@@ -619,9 +713,11 @@ export default function AttendancePage() {
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100">
               <Search size={17} className="text-gray-400" />
             </div>
+
             <p className="mt-3 text-xs text-gray-500 sm:text-sm">
               No employees match "{searchQuery}"
             </p>
+
             <button
               type="button"
               onClick={() => setSearchQuery("")}
@@ -641,6 +737,7 @@ export default function AttendancePage() {
 
                   {days.map((day) => {
                     const date = formatDate(year, month, day);
+
                     const dayOfWeek = new Date(
                       year,
                       month - 1,
@@ -662,9 +759,11 @@ export default function AttendancePage() {
                         <div className="text-xs font-semibold text-gray-800 sm:text-sm">
                           {day}
                         </div>
+
                         <div className="text-[9px] font-normal uppercase text-gray-400 sm:text-[10px]">
                           {dayOfWeek}
                         </div>
+
                         <button
                           type="button"
                           onClick={() => openBulkModal(date)}
@@ -693,14 +792,21 @@ export default function AttendancePage() {
                       >
                         {employee.name}
                       </div>
+
                       <div className="mt-0.5 max-w-[150px] truncate text-[10px] text-gray-500 sm:max-w-[200px] sm:text-xs">
                         {employee.mobile || "No mobile"}
                       </div>
                     </td>
 
                     {days.map((day) => {
-                      const record = getAttendanceRecord(employee.id, day);
-                      const hasReason = Boolean(record?.reason?.trim());
+                      const record = getAttendanceRecord(
+                        employee.id,
+                        day
+                      );
+
+                      const hasReason = Boolean(
+                        record?.reason?.trim()
+                      );
 
                       return (
                         <td
@@ -709,11 +815,15 @@ export default function AttendancePage() {
                         >
                           <button
                             type="button"
-                            onClick={() => openAttendanceModal(employee, day)}
+                            onClick={() =>
+                              openAttendanceModal(employee, day)
+                            }
                             title={
                               record
                                 ? `${STATUS_LABEL[record.status]}${
-                                    hasReason ? ` — ${record.reason}` : ""
+                                    hasReason
+                                      ? ` — ${record.reason}`
+                                      : ""
                                   }`
                                 : "Mark attendance"
                             }
@@ -723,9 +833,18 @@ export default function AttendancePage() {
                                 : "border-gray-200 bg-gray-50 text-gray-300 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-500"
                             }`}
                           >
-                            {record?.status === STATUS.PRESENT && <Check size={15} />}
-                            {record?.status === STATUS.ABSENT && <X size={15} />}
-                            {record?.status === STATUS.HALF_DAY && <Clock size={14} />}
+                            {record?.status === STATUS.PRESENT && (
+                              <Check size={15} />
+                            )}
+
+                            {record?.status === STATUS.ABSENT && (
+                              <X size={15} />
+                            )}
+
+                            {record?.status === STATUS.HALF_DAY && (
+                              <Clock size={14} />
+                            )}
+
                             {!record && "—"}
 
                             {hasReason && (
@@ -753,10 +872,12 @@ export default function AttendancePage() {
                 <h2 className="text-sm font-bold text-gray-900 sm:text-base">
                   Mark Attendance
                 </h2>
+
                 <p className="mt-0.5 truncate text-[11px] text-gray-500 sm:text-xs">
                   {selectedCell.employee.name} · {selectedCell.date}
                 </p>
               </div>
+
               <button
                 type="button"
                 onClick={closeModal}
@@ -767,28 +888,37 @@ export default function AttendancePage() {
               </button>
             </div>
 
-            <form onSubmit={handleSave} className="space-y-5 p-4 sm:p-5">
+            <form
+              onSubmit={handleSave}
+              className="space-y-5 p-4 sm:p-5"
+            >
               <div>
                 <label className="mb-2 block text-[10px] font-semibold uppercase tracking-wider text-gray-400 sm:text-xs">
                   Attendance Status
                 </label>
+
                 <div className="grid grid-cols-3 gap-2">
-                  {Object.entries(STATUS_LABEL).map(([status, label]) => (
-                    <button
-                      key={status}
-                      type="button"
-                      onClick={() =>
-                        setForm((current) => ({ ...current, status }))
-                      }
-                      className={`min-h-[42px] rounded-lg border px-2 py-2 text-[11px] font-semibold transition sm:text-xs ${
-                        form.status === status
-                          ? STATUS_STYLE[status]
-                          : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
-                      }`}
-                    >
-                      {label}
-                    </button>
-                  ))}
+                  {Object.entries(STATUS_LABEL).map(
+                    ([status, label]) => (
+                      <button
+                        key={status}
+                        type="button"
+                        onClick={() =>
+                          setForm((current) => ({
+                            ...current,
+                            status,
+                          }))
+                        }
+                        className={`min-h-[42px] rounded-lg border px-2 py-2 text-[11px] font-semibold transition sm:text-xs ${
+                          form.status === status
+                            ? STATUS_STYLE[status]
+                            : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    )
+                  )}
                 </div>
               </div>
 
@@ -797,8 +927,12 @@ export default function AttendancePage() {
                   htmlFor="attendance-reason"
                   className="mb-2 block text-[10px] font-semibold uppercase tracking-wider text-gray-400 sm:text-xs"
                 >
-                  Remarks <span className="font-normal text-gray-400">(Optional)</span>
+                  Remarks{" "}
+                  <span className="font-normal text-gray-400">
+                    (Optional)
+                  </span>
                 </label>
+
                 <textarea
                   id="attendance-reason"
                   value={form.reason}
@@ -813,6 +947,7 @@ export default function AttendancePage() {
                   placeholder="Enter remarks if required..."
                   className="w-full resize-none rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 />
+
                 <div className="mt-1 text-right text-[10px] text-gray-400 sm:text-xs">
                   {form.reason.length}/255
                 </div>
@@ -827,6 +962,7 @@ export default function AttendancePage() {
                 >
                   Cancel
                 </button>
+
                 <button
                   type="submit"
                   disabled={saving}
@@ -848,10 +984,12 @@ export default function AttendancePage() {
                 <h2 className="text-sm font-bold text-gray-900 sm:text-base">
                   Mark Bulk Attendance
                 </h2>
+
                 <p className="mt-0.5 text-[11px] text-gray-500 sm:text-xs">
                   Mark attendance for all active employees.
                 </p>
               </div>
+
               <button
                 type="button"
                 onClick={closeBulkModal}
@@ -862,20 +1000,25 @@ export default function AttendancePage() {
               </button>
             </div>
 
-            <form onSubmit={handleBulkSave} className="space-y-5 p-4 sm:p-5">
+            <form
+              onSubmit={handleBulkSave}
+              className="space-y-5 p-4 sm:p-5"
+            >
               <div className="rounded-lg border border-blue-100 bg-blue-50 px-3 py-3">
                 <div className="text-[10px] font-semibold uppercase tracking-wider text-blue-500">
                   Attendance Date
                 </div>
+
                 <div className="mt-1 text-sm font-bold text-blue-900">
-                  {new Date(`${bulkForm.date}T00:00:00`).toLocaleDateString(
-                    "en-IN",
-                    {
-                      day: "numeric",
-                      month: "long",
-                      year: "numeric",
-                    }
-                  )}
+                  {bulkForm.date
+                    ? new Date(
+                        `${bulkForm.date}T00:00:00`
+                      ).toLocaleDateString("en-IN", {
+                        day: "numeric",
+                        month: "long",
+                        year: "numeric",
+                      })
+                    : "-"}
                 </div>
               </div>
 
@@ -883,10 +1026,12 @@ export default function AttendancePage() {
                 <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-100 text-blue-600">
                   <Users size={17} />
                 </div>
+
                 <div>
                   <p className="text-xs font-semibold text-gray-900">
                     {activeEmployees.length} active employees
                   </p>
+
                   <p className="mt-0.5 text-[10px] text-gray-500">
                     Attendance will be marked for everyone.
                   </p>
@@ -897,23 +1042,29 @@ export default function AttendancePage() {
                 <label className="mb-2 block text-[10px] font-semibold uppercase tracking-wider text-gray-400 sm:text-xs">
                   Status for Everyone
                 </label>
+
                 <div className="grid grid-cols-3 gap-2">
-                  {Object.entries(STATUS_LABEL).map(([status, label]) => (
-                    <button
-                      key={status}
-                      type="button"
-                      onClick={() =>
-                        setBulkForm((current) => ({ ...current, status }))
-                      }
-                      className={`min-h-[42px] rounded-lg border px-2 py-2 text-[11px] font-semibold transition sm:text-xs ${
-                        bulkForm.status === status
-                          ? STATUS_STYLE[status]
-                          : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
-                      }`}
-                    >
-                      {label}
-                    </button>
-                  ))}
+                  {Object.entries(STATUS_LABEL).map(
+                    ([status, label]) => (
+                      <button
+                        key={status}
+                        type="button"
+                        onClick={() =>
+                          setBulkForm((current) => ({
+                            ...current,
+                            status,
+                          }))
+                        }
+                        className={`min-h-[42px] rounded-lg border px-2 py-2 text-[11px] font-semibold transition sm:text-xs ${
+                          bulkForm.status === status
+                            ? STATUS_STYLE[status]
+                            : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    )
+                  )}
                 </div>
               </div>
 
@@ -922,8 +1073,12 @@ export default function AttendancePage() {
                   htmlFor="bulk-reason"
                   className="mb-2 block text-[10px] font-semibold uppercase tracking-wider text-gray-400 sm:text-xs"
                 >
-                  Remarks <span className="font-normal text-gray-400">(Optional - applies to all)</span>
+                  Remarks{" "}
+                  <span className="font-normal text-gray-400">
+                    (Optional - applies to all)
+                  </span>
                 </label>
+
                 <textarea
                   id="bulk-reason"
                   value={bulkForm.reason}
@@ -938,6 +1093,7 @@ export default function AttendancePage() {
                   placeholder="Enter remarks if required..."
                   className="w-full resize-none rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 />
+
                 <div className="mt-1 text-right text-[10px] text-gray-400 sm:text-xs">
                   {bulkForm.reason.length}/255
                 </div>
@@ -952,12 +1108,15 @@ export default function AttendancePage() {
                 >
                   Cancel
                 </button>
+
                 <button
                   type="submit"
                   disabled={bulkSaving}
                   className="w-full rounded-lg bg-slate-800 px-5 py-2.5 text-xs font-medium text-white transition hover:bg-slate-900 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:py-2 sm:text-sm"
                 >
-                  {bulkSaving ? "Marking..." : "Mark Bulk Attendance"}
+                  {bulkSaving
+                    ? "Marking..."
+                    : "Mark Bulk Attendance"}
                 </button>
               </div>
             </form>
