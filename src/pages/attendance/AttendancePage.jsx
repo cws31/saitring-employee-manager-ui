@@ -7,9 +7,9 @@ import {
   X,
 } from "lucide-react";
 
-import attendanceApi from "../api/attendanceApi";
-import employeeApi from "../api/employeeApi";
-import AttendanceSummary from "../components/AttendanceSummary";
+import attendanceApi from "../../api/attendanceApi";
+import employeeApi from "../../api/employeeApi";
+import AttendanceSummary from "../../components/AttendanceSummary";
 
 const STATUS = {
   PRESENT: "PRESENT",
