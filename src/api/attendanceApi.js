@@ -10,6 +10,15 @@ const attendanceApi = {
     return response.data;
   },
 
+  bulkCreate: async (attendance) => {
+    const response = await axiosClient.post(
+      "/attendance/bulk",
+      attendance
+    );
+
+    return response.data;
+  },
+
   getMonthly: async (year, month) => {
     const response = await axiosClient.get(
       "/attendance/month",

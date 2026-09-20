@@ -7,6 +7,7 @@ import {
   Search,
   X,
   RotateCcw,
+  Users,
 } from "lucide-react";
 
 import attendanceApi from "../../api/attendanceApi";
@@ -61,6 +62,14 @@ export default function AttendancePage() {
   const [selectedCell, setSelectedCell] = useState(null);
 
   const [form, setForm] = useState({
+    status: STATUS.PRESENT,
+    reason: "",
+  });
+
+  const [bulkModalOpen, setBulkModalOpen] = useState(false);
+  const [bulkSaving, setBulkSaving] = useState(false);
+  const [bulkForm, setBulkForm] = useState({
+    date: "",
     status: STATUS.PRESENT,
     reason: "",
   });
@@ -152,6 +161,27 @@ export default function AttendancePage() {
     });
   };
 
+  const openBulkModal = (date) => {
+    setBulkForm({
+      date,
+      status: STATUS.PRESENT,
+      reason: "",
+    });
+    setBulkModalOpen(true);
+    setError("");
+    setSuccess("");
+  };
+
+  const closeBulkModal = () => {
+    if (bulkSaving) return;
+    setBulkModalOpen(false);
+    setBulkForm({
+      date: "",
+      status: STATUS.PRESENT,
+      reason: "",
+    });
+  };
+
   const handleSave = async (event) => {
     event.preventDefault();
 
@@ -199,6 +229,55 @@ export default function AttendancePage() {
       );
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleBulkSave = async (event) => {
+    event.preventDefault();
+    if (!bulkForm.date) {
+      setError("Attendance date is required.");
+      return;
+    }
+    try {
+      setBulkSaving(true);
+      setError("");
+      setSuccess("");
+      const payload = {
+        attendanceDate: bulkForm.date,
+        status: bulkForm.status,
+        reason: bulkForm.reason.trim() || null,
+      };
+      const savedRecords = await attendanceApi.bulkCreate(payload);
+      setAttendance((current) => {
+        const updated = [...current];
+        savedRecords.forEach((savedRecord) => {
+          const existingIndex = updated.findIndex(
+            (record) =>
+              record.employeeId === savedRecord.employeeId &&
+              record.attendanceDate === savedRecord.attendanceDate
+          );
+          if (existingIndex === -1) {
+            updated.push(savedRecord);
+          } else {
+            updated[existingIndex] = savedRecord;
+          }
+        });
+        return updated;
+      });
+      setSuccess(
+        `Attendance marked successfully for ${savedRecords.length} employee${
+          savedRecords.length === 1 ? "" : "s"
+        }.`
+      );
+      closeBulkModal();
+    } catch (err) {
+      console.error("Failed to mark bulk attendance:", err);
+      setError(
+        err.response?.data?.message ||
+          "Failed to mark bulk attendance. Please try again."
+      );
+    } finally {
+      setBulkSaving(false);
     }
   };
 
@@ -251,11 +330,8 @@ export default function AttendancePage() {
 
   return (
     <div className="mx-auto w-full max-w-7xl space-y-4 px-3 pb-10 sm:space-y-5 sm:px-4 md:px-6 lg:px-8">
-
       <div className="rounded-xl border border-gray-200 bg-white shadow-sm">
-
         <div className="flex flex-col gap-4 p-4 sm:p-5 lg:flex-row lg:items-center lg:justify-between">
-
           {/* Title */}
           <div className="min-w-0">
             <div className="flex items-center gap-2.5">
@@ -346,9 +422,7 @@ export default function AttendancePage() {
       )}
 
       <div className="rounded-xl border border-gray-200 bg-white p-3 shadow-sm sm:p-4">
-
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-
           {/* Legend */}
           <div className="min-w-0">
             <div className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-gray-400">
@@ -356,7 +430,6 @@ export default function AttendancePage() {
             </div>
 
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs font-medium text-gray-600">
-
               <div className="flex items-center gap-1.5">
                 <span className="flex h-6 w-6 items-center justify-center rounded-md border border-green-200 bg-green-100 text-[10px] font-bold text-green-700">
                   P
@@ -418,7 +491,6 @@ export default function AttendancePage() {
       </div>
 
       <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
-
         {loading ? (
           <div className="flex min-h-[280px] flex-col items-center justify-center p-8">
             <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-blue-600" />
@@ -462,10 +534,8 @@ export default function AttendancePage() {
         ) : (
           <div className="relative overflow-x-auto">
             <table className="min-w-max border-collapse">
-
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50">
-
                   {/* Employee Header */}
                   <th className="sticky left-0 z-30 min-w-[180px] border-r border-gray-200 bg-gray-50 px-3 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-gray-500 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.08)] sm:min-w-[220px] sm:px-4">
                     Employee ({filteredEmployees.length})
@@ -473,6 +543,8 @@ export default function AttendancePage() {
 
                   {/* Days */}
                   {days.map((day) => {
+                    const date = formatDate(year, month, day);
+
                     const dayOfWeek = new Date(
                       year,
                       month - 1,
@@ -487,7 +559,7 @@ export default function AttendancePage() {
                     return (
                       <th
                         key={day}
-                        className={`min-w-[46px] border-r border-gray-200 px-1 py-2.5 text-center sm:min-w-[52px] ${
+                        className={`min-w-[54px] border-r border-gray-200 px-1 py-1.5 text-center sm:min-w-[62px] ${
                           isWeekend ? "bg-gray-100" : ""
                         }`}
                       >
@@ -498,6 +570,17 @@ export default function AttendancePage() {
                         <div className="text-[9px] font-normal uppercase text-gray-400 sm:text-[10px]">
                           {dayOfWeek}
                         </div>
+
+                        {/* Bulk Attendance Button */}
+                        <button
+                          type="button"
+                          onClick={() => openBulkModal(date)}
+                          disabled={activeEmployees.length === 0}
+                          title={`Mark attendance for all employees on ${date}`}
+                          className="mx-auto mt-1 flex h-6 w-6 items-center justify-center rounded-md border border-blue-200 bg-blue-50 text-blue-600 transition hover:border-blue-300 hover:bg-blue-100 hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
+                        >
+                          <Users size={12} />
+                        </button>
                       </th>
                     );
                   })}
@@ -602,11 +685,10 @@ export default function AttendancePage() {
             <span>→</span>
           </div>
         )}
+
       {selectedCell && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-0 backdrop-blur-[2px] sm:items-center sm:p-4">
-
           <div className="max-h-[92vh] w-full overflow-y-auto rounded-t-2xl bg-white shadow-xl sm:max-w-md sm:rounded-xl">
-
             {/* Modal Header */}
             <div className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-200 bg-gray-50 px-4 py-3.5 sm:px-5 sm:py-4">
               <div className="min-w-0 pr-3">
@@ -715,6 +797,171 @@ export default function AttendancePage() {
                   className="w-full rounded-lg bg-slate-800 px-5 py-2.5 text-xs font-medium text-white transition hover:bg-slate-900 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:py-2 sm:text-sm"
                 >
                   {saving ? "Saving..." : "Save Attendance"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {bulkModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-0 backdrop-blur-[2px] sm:items-center sm:p-4">
+          <div className="max-h-[92vh] w-full overflow-y-auto rounded-t-2xl bg-white shadow-xl sm:max-w-md sm:rounded-xl">
+            {/* Header */}
+            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-200 bg-gray-50 px-4 py-3.5 sm:px-5 sm:py-4">
+              <div className="min-w-0 pr-3">
+                <h2 className="text-sm font-bold text-gray-900 sm:text-base">
+                  Mark Bulk Attendance
+                </h2>
+
+                <p className="mt-0.5 text-[11px] text-gray-500 sm:text-xs">
+                  Mark attendance for all active employees.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={closeBulkModal}
+                disabled={bulkSaving}
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-200/60 hover:text-gray-700 disabled:cursor-not-allowed"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <form
+              onSubmit={handleBulkSave}
+              className="space-y-5 p-4 sm:p-5"
+            >
+              {/* Selected Date */}
+              <div className="rounded-lg border border-blue-100 bg-blue-50 px-3 py-3">
+                <div className="text-[10px] font-semibold uppercase tracking-wider text-blue-500">
+                  Attendance Date
+                </div>
+
+                <div className="mt-1 text-sm font-bold text-blue-900">
+                  {new Date(`${bulkForm.date}T00:00:00`).toLocaleDateString(
+                    "en-IN",
+                    {
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                    }
+                  )}
+                </div>
+              </div>
+
+              {/* Employee Count */}
+              <div className="flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 px-3 py-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-100 text-blue-600">
+                  <Users size={17} />
+                </div>
+
+                <div>
+                  <p className="text-xs font-semibold text-gray-900">
+                    {activeEmployees.length} active employees
+                  </p>
+
+                  <p className="mt-0.5 text-[10px] text-gray-500">
+                    Attendance will be marked for everyone.
+                  </p>
+                </div>
+              </div>
+
+              {/* Status */}
+              <div>
+                <label className="mb-2 block text-[10px] font-semibold uppercase tracking-wider text-gray-400 sm:text-xs">
+                  Attendance Status
+                </label>
+
+                <div className="grid grid-cols-3 gap-2">
+                  {Object.entries(STATUS_LABEL).map(
+                    ([status, label]) => (
+                      <button
+                        key={status}
+                        type="button"
+                        onClick={() =>
+                          setBulkForm((current) => ({
+                            ...current,
+                            status,
+                          }))
+                        }
+                        className={`min-h-[42px] rounded-lg border px-2 py-2 text-[11px] font-semibold transition sm:text-xs ${
+                          bulkForm.status === status
+                            ? STATUS_STYLE[status]
+                            : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    )
+                  )}
+                </div>
+              </div>
+
+              {/* Remarks */}
+              <div>
+                <label
+                  htmlFor="bulk-attendance-reason"
+                  className="mb-2 block text-[10px] font-semibold uppercase tracking-wider text-gray-400 sm:text-xs"
+                >
+                  Remarks{" "}
+                  <span className="font-normal text-gray-400">
+                    (Optional)
+                  </span>
+                </label>
+
+                <textarea
+                  id="bulk-attendance-reason"
+                  value={bulkForm.reason}
+                  onChange={(event) =>
+                    setBulkForm((current) => ({
+                      ...current,
+                      reason: event.target.value,
+                    }))
+                  }
+                  rows={4}
+                  maxLength={255}
+                  placeholder="Enter remarks if required..."
+                  className="w-full resize-none rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                />
+
+                <div className="mt-1 text-right text-[10px] text-gray-400 sm:text-xs">
+                  {bulkForm.reason.length}/255
+                </div>
+              </div>
+
+              {/* Warning */}
+              <div className="rounded-lg border border-yellow-200 bg-yellow-50 px-3 py-2.5 text-xs text-yellow-700">
+                Existing attendance for this date will be updated.
+              </div>
+
+              {/* Actions */}
+              <div className="flex flex-col-reverse gap-2 border-t border-gray-100 pt-4 sm:flex-row sm:justify-end">
+                <button
+                  type="button"
+                  onClick={closeBulkModal}
+                  disabled={bulkSaving}
+                  className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-xs font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed sm:w-auto sm:py-2 sm:text-sm"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={
+                    bulkSaving ||
+                    activeEmployees.length === 0
+                  }
+                  className="flex w-full items-center justify-center gap-2 rounded-lg bg-slate-800 px-5 py-2.5 text-xs font-medium text-white transition hover:bg-slate-900 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:py-2 sm:text-sm"
+                >
+                  {bulkSaving && (
+                    <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                  )}
+
+                  {bulkSaving
+                    ? "Marking..."
+                    : `Mark ${activeEmployees.length} Employees`}
                 </button>
               </div>
             </form>
