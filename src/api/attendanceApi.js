@@ -46,6 +46,31 @@ const attendanceApi = {
 
     return response.data;
   },
+
+  getDailySummary: async (date) => {
+    const response = await axiosClient.get(
+      "/attendance/summary/day",
+      {
+        params: {
+          date,
+        },
+      }
+    );
+    return response.data;
+  },
+
+  getMonthlySummary: async (year, month) => {
+    const response = await axiosClient.get(
+      "/attendance/summary/month",
+      {
+        params: {
+          year,
+          month,
+        },
+      }
+    );
+    return response.data;
+  },
 };
 
 export default attendanceApi;
