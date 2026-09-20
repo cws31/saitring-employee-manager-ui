@@ -48,9 +48,17 @@ export default function AttendanceSummary({
   const totalMarked =
     presentCount + absentCount + halfPresentCount;
 
-  const toggleSummary = () => {
-    setIsSummaryExpanded((current) => !current);
-  };
+ const toggleSummary = () => {
+  setIsSummaryExpanded((current) => {
+    const next = !current;
+
+    if (!next) {
+      setIsReportExpanded(false);
+    }
+
+    return next;
+  });
+};
 
   const toggleReport = (event) => {
     event.stopPropagation();
