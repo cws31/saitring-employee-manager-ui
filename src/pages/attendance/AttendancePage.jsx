@@ -831,3 +831,5 @@ const AttendancePage = () => {
     </div>
   );
 };
+
+export default AttendancePage;
