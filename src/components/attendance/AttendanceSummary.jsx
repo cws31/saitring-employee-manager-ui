@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ChevronDown, ChevronUp, Users, RefreshCw } from "lucide-react";
+import { ChevronDown, ChevronUp, Users, RefreshCw, Calendar } from "lucide-react";
 
 export default function AttendanceSummary({
   dailySummary,
@@ -11,53 +11,55 @@ export default function AttendanceSummary({
   year,
   summaryDate,
   onRetry,
+  onDateChange,
+  employees = [],
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
 
-  // Parse today's counts from dailySummary response if available
+  // Parse present, absent, half-day counts for the selected date
   const presentCount = dailySummary?.presentCount ?? 0;
   const absentCount = dailySummary?.absentCount ?? 0;
   const halfDayCount = dailySummary?.halfDayCount ?? 0;
-  const totalEmployees = dailySummary?.totalEmployees ?? (presentCount + absentCount + halfDayCount);
 
   return (
     <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden transition-all duration-200">
-      {/* Header / Default Collapsed View (Always visible: Today's / Selected Date's quick stats) */}
-      <div 
-        onClick={() => setIsExpanded(!isExpanded)}
-        className="flex flex-col gap-3 p-4 sm:p-5 cursor-pointer bg-gradient-to-r from-gray-50/50 to-white hover:bg-gray-50/80 transition select-none lg:flex-row lg:items-center lg:justify-between"
-      >
-        <div className="flex items-center justify-between lg:justify-start lg:gap-6">
+      {/* Default Collapsed View: Shows only current/selected date counts & Date Picker */}
+      <div className="flex flex-col gap-3 p-4 sm:p-5 bg-gradient-to-r from-gray-50/50 to-white lg:flex-row lg:items-center lg:justify-between border-b border-gray-100">
+        
+        {/* Left Side: Title & Date Selector */}
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-600 shadow-sm">
               <Users size={20} />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-sm font-bold text-gray-900 sm:text-base">
-                  Attendance Summary
-                </h2>
-                <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-600 border border-blue-200">
-                  {summaryDate ? `Date: ${summaryDate}` : `${monthName} ${year}`}
-                </span>
-              </div>
-              <p className="mt-0.5 text-[11px] text-gray-500 sm:text-xs">
-                {isExpanded ? "Click to collapse full report" : "Click to view complete monthly breakdown & stats"}
+              <h2 className="text-sm font-bold text-gray-900 sm:text-base">
+                Attendance Summary
+              </h2>
+              <p className="text-[11px] text-gray-500 sm:text-xs">
+                Quick counts for selected date
               </p>
             </div>
           </div>
 
-          <button
-            type="button"
-            className="flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-700 lg:hidden"
-          >
-            <span>{isExpanded ? "Less" : "Expand"}</span>
-            {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-          </button>
+          {/* Date Selector Input */}
+          <div className="flex items-center gap-1.5 self-start sm:self-auto rounded-lg border border-gray-300 bg-white px-2.5 py-1.5 shadow-xs">
+            <Calendar size={14} className="text-gray-400 shrink-0" />
+            <input
+              type="date"
+              value={summaryDate || ""}
+              onChange={(e) => {
+                if (e.target.value && onDateChange) {
+                  onDateChange(e.target.value);
+                }
+              }}
+              className="bg-transparent text-xs font-semibold text-gray-700 outline-none cursor-pointer"
+            />
+          </div>
         </div>
 
-        {/* Quick Default Badges (Present, Absent, Half-Day) */}
-        <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+        {/* Right Side: Default Quick Badges (Present, Absent, Half-Day) & Expand Toggle */}
+        <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-3 flex-wrap">
           <div className="flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 px-3 py-1.5 shadow-xs">
             <span className="text-[10px] font-bold uppercase tracking-wider text-green-600">Present</span>
             <span className="text-sm font-extrabold text-green-700">{presentCount}</span>
@@ -73,15 +75,27 @@ export default function AttendanceSummary({
             <span className="text-sm font-extrabold text-yellow-700">{halfDayCount}</span>
           </div>
 
-          <div className="hidden lg:flex items-center pl-2 text-gray-400">
-            {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-          </div>
+          {/* Expand / Collapse Button */}
+          <button
+            type="button"
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="flex items-center gap-1.5 ml-2 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-blue-600 hover:bg-gray-50 transition shadow-xs"
+          >
+            <span>{isExpanded ? "Hide Full Report" : "View Full Report"}</span>
+            {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+          </button>
         </div>
       </div>
 
-      {/* Expanded Full Summary Content */}
+      {/* Expanded Full Summary Content (Completely hidden by default) */}
       {isExpanded && (
-        <div className="border-t border-gray-200 bg-white p-4 sm:p-5 space-y-4 animate-fadeIn">
+        <div className="bg-white p-4 sm:p-5 space-y-4 animate-fadeIn">
+          <div className="flex items-center justify-between border-b border-gray-100 pb-2">
+            <span className="text-xs font-semibold text-gray-500">
+              Complete Breakdown for {monthName} {year}
+            </span>
+          </div>
+
           {error && (
             <div className="flex items-center justify-between rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-xs text-red-700">
               <span>{error}</span>
@@ -120,11 +134,11 @@ export default function AttendanceSummary({
                 </div>
               </div>
 
-              {/* Detailed Breakdown List / Table */}
+              {/* Detailed Breakdown Table */}
               {monthlySummary.length > 0 && (
-                <div className="overflow-x-auto rounded-lg border border-gray-200">
+                <div className="overflow-x-auto rounded-lg border border-gray-200 max-h-64">
                   <table className="min-w-full divide-y divide-gray-200 text-left text-xs">
-                    <thead className="bg-gray-50">
+                    <thead className="bg-gray-50 sticky top-0">
                       <tr>
                         <th className="px-3 py-2 font-semibold text-gray-600">Employee</th>
                         <th className="px-3 py-2 font-semibold text-green-600 text-center">Present</th>
@@ -133,14 +147,17 @@ export default function AttendanceSummary({
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100 bg-white">
-                      {monthlySummary.map((record, index) => (
-                        <tr key={index} className="hover:bg-gray-50">
-                          <td className="px-3 py-2 font-medium text-gray-900">{record.employeeName || `Employee #${record.employeeId}`}</td>
-                          <td className="px-3 py-2 text-center font-semibold text-green-700">{record.present || 0}</td>
-                          <td className="px-3 py-2 text-center font-semibold text-red-700">{record.absent || 0}</td>
-                          <td className="px-3 py-2 text-center font-semibold text-yellow-700">{record.halfPresent || 0}</td>
-                        </tr>
-                      ))}
+                      {monthlySummary.map((record, index) => {
+                        const empName = record.employeeName || record.name || employees.find(e => e.id === record.employeeId)?.name;
+                        return (
+                          <tr key={index} className="hover:bg-gray-50">
+                            <td className="px-3 py-2 font-medium text-gray-900">{empName || `Employee #${record.employeeId}`}</td>
+                            <td className="px-3 py-2 text-center font-semibold text-green-700">{record.present || 0}</td>
+                            <td className="px-3 py-2 text-center font-semibold text-red-700">{record.absent || 0}</td>
+                            <td className="px-3 py-2 text-center font-semibold text-yellow-700">{record.halfPresent || 0}</td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
