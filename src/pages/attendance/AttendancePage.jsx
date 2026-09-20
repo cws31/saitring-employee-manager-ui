@@ -46,14 +46,9 @@ const getDaysInMonth = (year, month) => {
   return new Date(year, month, 0).getDate();
 };
 
-const getSummaryDateForMonth = (year, month) => {
-  const currentDate = new Date();
-  const currentYear = currentDate.getFullYear();
-  const currentMonth = currentDate.getMonth() + 1;
-  if (year === currentYear && month === currentMonth) {
-    return formatDate(year, month, currentDate.getDate());
-  }
-  return formatDate(year, month, 1);
+const getTodayDateString = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 };
 
 export default function AttendancePage() {
@@ -69,14 +64,12 @@ export default function AttendancePage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  // Summary States
+  // Summary States - Default to current date
   const [dailySummary, setDailySummary] = useState(null);
   const [monthlySummary, setMonthlySummary] = useState([]);
   const [summaryLoading, setSummaryLoading] = useState(false);
   const [summaryError, setSummaryError] = useState("");
-  const [summaryDate, setSummaryDate] = useState(
-    getSummaryDateForMonth(getCurrentYear(), getCurrentMonth())
-  );
+  const [summaryDate, setSummaryDate] = useState(getTodayDateString());
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCell, setSelectedCell] = useState(null);
@@ -140,10 +133,8 @@ export default function AttendancePage() {
     setSummaryLoading(true);
     setSummaryError("");
     try {
-      const defaultDate = getSummaryDateForMonth(year, month);
-      setSummaryDate(defaultDate);
       await Promise.all([
-        loadDailySummary(defaultDate),
+        loadDailySummary(summaryDate),
         loadMonthlySummary(),
       ]);
     } catch (err) {
@@ -152,6 +143,18 @@ export default function AttendancePage() {
       );
     } finally {
       setSummaryLoading(false);
+    }
+  };
+
+  const handleDateSelectionChange = async (newDate) => {
+    setSummaryDate(newDate);
+    // Automatically extract year and month from selected date if it belongs to another month
+    const [selectedYear, selectedMonth] = newDate.split("-").map(Number);
+    if (selectedYear && selectedMonth && (selectedYear !== year || selectedMonth !== month)) {
+      setYear(selectedYear);
+      setMonth(selectedMonth);
+    } else {
+      await loadDailySummary(newDate);
     }
   };
 
@@ -186,8 +189,12 @@ export default function AttendancePage() {
 
   useEffect(() => {
     loadData();
-    loadAttendanceSummary();
+    loadMonthlySummary();
   }, [year, month]);
+
+  useEffect(() => {
+    loadDailySummary(summaryDate);
+  }, [summaryDate]);
 
   const attendanceMap = useMemo(() => {
     const map = new Map();
@@ -209,7 +216,6 @@ export default function AttendancePage() {
     const date = formatDate(year, month, day);
     const existingRecord = getAttendanceRecord(employee.id, day);
 
-    // Update summary view to target this specific date on click
     setSummaryDate(date);
     loadDailySummary(date);
 
@@ -389,6 +395,7 @@ export default function AttendancePage() {
   const handleResetToCurrentMonth = () => {
     setYear(getCurrentYear());
     setMonth(getCurrentMonth());
+    setSummaryDate(getTodayDateString());
   };
 
   const monthName = new Date(year, month - 1).toLocaleString("en-IN", {
@@ -516,6 +523,8 @@ export default function AttendancePage() {
         year={year}
         summaryDate={summaryDate}
         onRetry={loadAttendanceSummary}
+        onDateChange={handleDateSelectionChange}
+        employees={employees}
       />
 
       <div className="rounded-xl border border-gray-200 bg-white p-3 shadow-sm sm:p-4">
