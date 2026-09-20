@@ -209,6 +209,10 @@ export default function AttendancePage() {
     const date = formatDate(year, month, day);
     const existingRecord = getAttendanceRecord(employee.id, day);
 
+    // Update summary view to target this specific date on click
+    setSummaryDate(date);
+    loadDailySummary(date);
+
     setSelectedCell({
       employee,
       day,
@@ -237,6 +241,9 @@ export default function AttendancePage() {
   };
 
   const openBulkModal = (date) => {
+    setSummaryDate(date);
+    loadDailySummary(date);
+
     setBulkForm({
       date,
       status: STATUS.PRESENT,
@@ -412,7 +419,6 @@ export default function AttendancePage() {
     <div className="mx-auto w-full max-w-7xl space-y-4 px-3 pb-10 sm:space-y-5 sm:px-4 md:px-6 lg:px-8">
       <div className="rounded-xl border border-gray-200 bg-white shadow-sm">
         <div className="flex flex-col gap-4 p-4 sm:p-5 lg:flex-row lg:items-center lg:justify-between">
-          {/* Title */}
           <div className="min-w-0">
             <div className="flex items-center gap-2.5">
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
@@ -431,7 +437,6 @@ export default function AttendancePage() {
             </div>
           </div>
 
-          {/* Month Controls */}
           <div className="flex w-full items-center gap-2 sm:w-auto">
             {!isCurrentMonthSelected && (
               <button
@@ -477,7 +482,6 @@ export default function AttendancePage() {
       {error && (
         <div className="flex min-w-0 items-start justify-between gap-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-xs text-red-700 shadow-sm sm:px-4">
           <span className="min-w-0 break-words">{error}</span>
-
           <button
             type="button"
             onClick={() => setError("")}
@@ -491,7 +495,6 @@ export default function AttendancePage() {
       {success && (
         <div className="flex min-w-0 items-start justify-between gap-3 rounded-lg border border-green-200 bg-green-50 px-3 py-2.5 text-xs text-green-700 shadow-sm sm:px-4">
           <span className="min-w-0 break-words">{success}</span>
-
           <button
             type="button"
             onClick={() => setSuccess("")}
@@ -502,7 +505,7 @@ export default function AttendancePage() {
         </div>
       )}
 
-      {/* NEW Attendance Summary Section */}
+      {/* Attendance Summary Component Integration */}
       <AttendanceSummary
         dailySummary={dailySummary}
         monthlySummary={monthlySummary}
@@ -517,7 +520,6 @@ export default function AttendancePage() {
 
       <div className="rounded-xl border border-gray-200 bg-white p-3 shadow-sm sm:p-4">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          {/* Legend */}
           <div className="min-w-0">
             <div className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-gray-400">
               Attendance Status
@@ -554,7 +556,6 @@ export default function AttendancePage() {
             </div>
           </div>
 
-          {/* Search */}
           <div className="w-full lg:w-64">
             <div className="relative">
               <Search
@@ -588,7 +589,6 @@ export default function AttendancePage() {
         {loading ? (
           <div className="flex min-h-[280px] flex-col items-center justify-center p-8">
             <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-blue-600" />
-
             <p className="mt-4 text-xs text-gray-500 sm:text-sm">
               Loading attendance matrix...
             </p>
@@ -598,11 +598,9 @@ export default function AttendancePage() {
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 text-lg">
               📅
             </div>
-
             <h3 className="mt-4 text-sm font-semibold text-gray-900">
               No active employees found
             </h3>
-
             <p className="mt-1 max-w-sm text-xs text-gray-500 sm:text-sm">
               Please register an active employee before marking attendance.
             </p>
@@ -612,11 +610,9 @@ export default function AttendancePage() {
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100">
               <Search size={17} className="text-gray-400" />
             </div>
-
             <p className="mt-3 text-xs text-gray-500 sm:text-sm">
               No employees match "{searchQuery}"
             </p>
-
             <button
               type="button"
               onClick={() => setSearchQuery("")}
@@ -630,15 +626,12 @@ export default function AttendancePage() {
             <table className="min-w-max border-collapse">
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50">
-                  {/* Employee Header */}
                   <th className="sticky left-0 z-30 min-w-[180px] border-r border-gray-200 bg-gray-50 px-3 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-gray-500 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.08)] sm:min-w-[220px] sm:px-4">
                     Employee ({filteredEmployees.length})
                   </th>
 
-                  {/* Days */}
                   {days.map((day) => {
                     const date = formatDate(year, month, day);
-
                     const dayOfWeek = new Date(
                       year,
                       month - 1,
@@ -660,12 +653,9 @@ export default function AttendancePage() {
                         <div className="text-xs font-semibold text-gray-800 sm:text-sm">
                           {day}
                         </div>
-
                         <div className="text-[9px] font-normal uppercase text-gray-400 sm:text-[10px]">
                           {dayOfWeek}
                         </div>
-
-                        {/* Bulk Attendance Button */}
                         <button
                           type="button"
                           onClick={() => openBulkModal(date)}
@@ -687,7 +677,6 @@ export default function AttendancePage() {
                     key={employee.id}
                     className="border-b border-gray-100 last:border-b-0 hover:bg-gray-50/50"
                   >
-                    {/* Employee Info */}
                     <td className="sticky left-0 z-20 border-r border-gray-200 bg-white px-3 py-2.5 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.08)] sm:px-4 sm:py-3">
                       <div
                         className="max-w-[150px] truncate text-xs font-medium text-gray-900 sm:max-w-[200px]"
@@ -695,22 +684,14 @@ export default function AttendancePage() {
                       >
                         {employee.name}
                       </div>
-
                       <div className="mt-0.5 max-w-[150px] truncate text-[10px] text-gray-500 sm:max-w-[200px] sm:text-xs">
                         {employee.mobile || "No mobile"}
                       </div>
                     </td>
 
-                    {/* Attendance Cells */}
                     {days.map((day) => {
-                      const record = getAttendanceRecord(
-                        employee.id,
-                        day
-                      );
-
-                      const hasReason = Boolean(
-                        record?.reason?.trim()
-                      );
+                      const record = getAttendanceRecord(employee.id, day);
+                      const hasReason = Boolean(record?.reason?.trim());
 
                       return (
                         <td
@@ -719,18 +700,11 @@ export default function AttendancePage() {
                         >
                           <button
                             type="button"
-                            onClick={() =>
-                              openAttendanceModal(
-                                employee,
-                                day
-                              )
-                            }
+                            onClick={() => openAttendanceModal(employee, day)}
                             title={
                               record
                                 ? `${STATUS_LABEL[record.status]}${
-                                    hasReason
-                                      ? ` — ${record.reason}`
-                                      : ""
+                                    hasReason ? ` — ${record.reason}` : ""
                                   }`
                                 : "Mark attendance"
                             }
@@ -740,18 +714,9 @@ export default function AttendancePage() {
                                 : "border-gray-200 bg-gray-50 text-gray-300 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-500"
                             }`}
                           >
-                            {record?.status === STATUS.PRESENT && (
-                              <Check size={15} />
-                            )}
-
-                            {record?.status === STATUS.ABSENT && (
-                              <X size={15} />
-                            )}
-
-                            {record?.status === STATUS.HALF_DAY && (
-                              <Clock size={14} />
-                            )}
-
+                            {record?.status === STATUS.PRESENT && <Check size={15} />}
+                            {record?.status === STATUS.ABSENT && <X size={15} />}
+                            {record?.status === STATUS.HALF_DAY && <Clock size={14} />}
                             {!record && "—"}
 
                             {hasReason && (
@@ -770,32 +735,19 @@ export default function AttendancePage() {
           </div>
         )}
       </div>
-      {!loading &&
-        activeEmployees.length > 0 &&
-        filteredEmployees.length > 0 && (
-          <div className="flex items-center justify-center gap-1.5 text-[10px] text-gray-400 sm:hidden">
-            <span>←</span>
-            <span>Swipe horizontally to view all days</span>
-            <span>→</span>
-          </div>
-        )}
 
       {selectedCell && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-0 backdrop-blur-[2px] sm:items-center sm:p-4">
           <div className="max-h-[92vh] w-full overflow-y-auto rounded-t-2xl bg-white shadow-xl sm:max-w-md sm:rounded-xl">
-            {/* Modal Header */}
             <div className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-200 bg-gray-50 px-4 py-3.5 sm:px-5 sm:py-4">
               <div className="min-w-0 pr-3">
                 <h2 className="text-sm font-bold text-gray-900 sm:text-base">
                   Mark Attendance
                 </h2>
-
                 <p className="mt-0.5 truncate text-[11px] text-gray-500 sm:text-xs">
-                  {selectedCell.employee.name} ·{" "}
-                  {selectedCell.date}
+                  {selectedCell.employee.name} · {selectedCell.date}
                 </p>
               </div>
-
               <button
                 type="button"
                 onClick={closeModal}
@@ -806,54 +758,38 @@ export default function AttendancePage() {
               </button>
             </div>
 
-            {/* Modal Body */}
-            <form
-              onSubmit={handleSave}
-              className="space-y-5 p-4 sm:p-5"
-            >
-              {/* Status */}
+            <form onSubmit={handleSave} className="space-y-5 p-4 sm:p-5">
               <div>
                 <label className="mb-2 block text-[10px] font-semibold uppercase tracking-wider text-gray-400 sm:text-xs">
                   Attendance Status
                 </label>
-
                 <div className="grid grid-cols-3 gap-2">
-                  {Object.entries(STATUS_LABEL).map(
-                    ([status, label]) => (
-                      <button
-                        key={status}
-                        type="button"
-                        onClick={() =>
-                          setForm((current) => ({
-                            ...current,
-                            status,
-                          }))
-                        }
-                        className={`min-h-[42px] rounded-lg border px-2 py-2 text-[11px] font-semibold transition sm:text-xs ${
-                          form.status === status
-                            ? STATUS_STYLE[status]
-                            : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
-                        }`}
-                      >
-                        {label}
-                      </button>
-                    )
-                  )}
+                  {Object.entries(STATUS_LABEL).map(([status, label]) => (
+                    <button
+                      key={status}
+                      type="button"
+                      onClick={() =>
+                        setForm((current) => ({ ...current, status }))
+                      }
+                      className={`min-h-[42px] rounded-lg border px-2 py-2 text-[11px] font-semibold transition sm:text-xs ${
+                        form.status === status
+                          ? STATUS_STYLE[status]
+                          : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
                 </div>
               </div>
 
-              {/* Remarks */}
               <div>
                 <label
                   htmlFor="attendance-reason"
                   className="mb-2 block text-[10px] font-semibold uppercase tracking-wider text-gray-400 sm:text-xs"
                 >
-                  Remarks{" "}
-                  <span className="font-normal text-gray-400">
-                    (Optional)
-                  </span>
+                  Remarks <span className="font-normal text-gray-400">(Optional)</span>
                 </label>
-
                 <textarea
                   id="attendance-reason"
                   value={form.reason}
@@ -868,13 +804,11 @@ export default function AttendancePage() {
                   placeholder="Enter remarks if required..."
                   className="w-full resize-none rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 />
-
                 <div className="mt-1 text-right text-[10px] text-gray-400 sm:text-xs">
                   {form.reason.length}/255
                 </div>
               </div>
 
-              {/* Actions */}
               <div className="flex flex-col-reverse gap-2 border-t border-gray-100 pt-4 sm:flex-row sm:justify-end">
                 <button
                   type="button"
@@ -884,7 +818,6 @@ export default function AttendancePage() {
                 >
                   Cancel
                 </button>
-
                 <button
                   type="submit"
                   disabled={saving}
@@ -901,18 +834,15 @@ export default function AttendancePage() {
       {bulkModalOpen && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-0 backdrop-blur-[2px] sm:items-center sm:p-4">
           <div className="max-h-[92vh] w-full overflow-y-auto rounded-t-2xl bg-white shadow-xl sm:max-w-md sm:rounded-xl">
-            {/* Header */}
             <div className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-200 bg-gray-50 px-4 py-3.5 sm:px-5 sm:py-4">
               <div className="min-w-0 pr-3">
                 <h2 className="text-sm font-bold text-gray-900 sm:text-base">
                   Mark Bulk Attendance
                 </h2>
-
                 <p className="mt-0.5 text-[11px] text-gray-500 sm:text-xs">
                   Mark attendance for all active employees.
                 </p>
               </div>
-
               <button
                 type="button"
                 onClick={closeBulkModal}
@@ -923,16 +853,11 @@ export default function AttendancePage() {
               </button>
             </div>
 
-            <form
-              onSubmit={handleBulkSave}
-              className="space-y-5 p-4 sm:p-5"
-            >
-              {/* Selected Date */}
+            <form onSubmit={handleBulkSave} className="space-y-5 p-4 sm:p-5">
               <div className="rounded-lg border border-blue-100 bg-blue-50 px-3 py-3">
                 <div className="text-[10px] font-semibold uppercase tracking-wider text-blue-500">
                   Attendance Date
                 </div>
-
                 <div className="mt-1 text-sm font-bold text-blue-900">
                   {new Date(`${bulkForm.date}T00:00:00`).toLocaleDateString(
                     "en-IN",
@@ -945,66 +870,51 @@ export default function AttendancePage() {
                 </div>
               </div>
 
-              {/* Employee Count */}
               <div className="flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 px-3 py-3">
                 <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-100 text-blue-600">
                   <Users size={17} />
                 </div>
-
                 <div>
                   <p className="text-xs font-semibold text-gray-900">
                     {activeEmployees.length} active employees
                   </p>
-
                   <p className="mt-0.5 text-[10px] text-gray-500">
                     Attendance will be marked for everyone.
                   </p>
                 </div>
               </div>
 
-              {/* Status */}
               <div>
                 <label className="mb-2 block text-[10px] font-semibold uppercase tracking-wider text-gray-400 sm:text-xs">
                   Status for Everyone
                 </label>
-
                 <div className="grid grid-cols-3 gap-2">
-                  {Object.entries(STATUS_LABEL).map(
-                    ([status, label]) => (
-                      <button
-                        key={status}
-                        type="button"
-                        onClick={() =>
-                          setBulkForm((current) => ({
-                            ...current,
-                            status,
-                          }))
-                        }
-                        className={`min-h-[42px] rounded-lg border px-2 py-2 text-[11px] font-semibold transition sm:text-xs ${
-                          bulkForm.status === status
-                            ? STATUS_STYLE[status]
-                            : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
-                        }`}
-                      >
-                        {label}
-                      </button>
-                    )
-                  )}
+                  {Object.entries(STATUS_LABEL).map(([status, label]) => (
+                    <button
+                      key={status}
+                      type="button"
+                      onClick={() =>
+                        setBulkForm((current) => ({ ...current, status }))
+                      }
+                      className={`min-h-[42px] rounded-lg border px-2 py-2 text-[11px] font-semibold transition sm:text-xs ${
+                        bulkForm.status === status
+                          ? STATUS_STYLE[status]
+                          : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
                 </div>
               </div>
 
-              {/* Remarks */}
               <div>
                 <label
                   htmlFor="bulk-reason"
                   className="mb-2 block text-[10px] font-semibold uppercase tracking-wider text-gray-400 sm:text-xs"
                 >
-                  Remarks{" "}
-                  <span className="font-normal text-gray-400">
-                    (Optional - applies to all)
-                  </span>
+                  Remarks <span className="font-normal text-gray-400">(Optional - applies to all)</span>
                 </label>
-
                 <textarea
                   id="bulk-reason"
                   value={bulkForm.reason}
@@ -1019,13 +929,11 @@ export default function AttendancePage() {
                   placeholder="Enter remarks if required..."
                   className="w-full resize-none rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 />
-
                 <div className="mt-1 text-right text-[10px] text-gray-400 sm:text-xs">
                   {bulkForm.reason.length}/255
                 </div>
               </div>
 
-              {/* Actions */}
               <div className="flex flex-col-reverse gap-2 border-t border-gray-100 pt-4 sm:flex-row sm:justify-end">
                 <button
                   type="button"
@@ -1035,7 +943,6 @@ export default function AttendancePage() {
                 >
                   Cancel
                 </button>
-
                 <button
                   type="submit"
                   disabled={bulkSaving}
