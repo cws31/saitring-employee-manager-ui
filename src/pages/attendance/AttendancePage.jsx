@@ -12,7 +12,7 @@ import {
 
 import attendanceApi from "../../api/attendanceApi";
 import employeeApi from "../../api/employeeApi";
-import AttendanceSummary from "./AttendanceSummary";
+import AttendanceSummary from "../../components/attendance/AttendanceSummary";
 
 const STATUS = {
   PRESENT: "PRESENT",
