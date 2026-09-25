@@ -109,26 +109,28 @@ const Hero = () => {
         />
 
       
-<div 
-  className=" 
-    relative 
-    z-10 
-    min-h-[880px] 
-    px-5 
-    pt-[305px] 
-    pb-8 
+<div
+  className="
+    relative
+    z-10
+    flex
+    min-h-[880px]
+    flex-col
+    justify-start
+    px-5
+    pt-[34vh]
+    pb-8
 
-    sm:min-h-[820px] 
-    sm:px-7 
-    sm:pt-[255px] 
+    sm:min-h-[820px]
+    sm:px-7
+    sm:pt-[29vh]
 
-    lg:flex 
-    lg:min-h-[600px] 
-    lg:items-center 
-    lg:px-12 
-    lg:py-12 
-    lg:pt-12 
-  " 
+    lg:min-h-[600px]
+    lg:items-center
+    lg:justify-center
+    lg:px-12
+    lg:py-12
+  "
 >
           <div
             className="
