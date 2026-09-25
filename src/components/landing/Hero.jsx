@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
@@ -22,39 +23,43 @@ const Hero = () => {
         className="
           relative
           mx-auto
-          min-h-[880px]
+          min-h-[760px]
           w-full
           overflow-hidden
           bg-slate-950
 
-          sm:min-h-[820px]
+          sm:min-h-[700px]
 
           lg:min-h-[600px]
           lg:max-w-[1470px]
           lg:rounded-none
         "
       >
-<img
-  src="/images/landing-hero.png"
-  alt="Construction workers working on a building site"
-  className="
-    absolute
-    left-0
-    top-[-40px]
-    h-auto
-    w-full
-    object-contain
-    object-top
+       
 
-    sm:top-[-30px]
+        <img
+          src="/images/landing-hero.png"
+          alt="Construction workers working on a building site"
+          className="
+            absolute
+            left-0
+            top-[-40px]
+            h-auto
+            w-full
+            object-contain
+            object-top
 
-    lg:inset-0
-    lg:h-full
-    lg:w-full
-    lg:object-cover
-    lg:object-center
-  "
-/>
+            sm:top-[-30px]
+
+            lg:inset-0
+            lg:h-full
+            lg:w-full
+            lg:object-cover
+            lg:object-center
+          "
+        />
+
+  
 
         <div
           className="
@@ -77,6 +82,8 @@ const Hero = () => {
           "
         />
 
+
+
         <div
           className="
             absolute
@@ -89,6 +96,8 @@ const Hero = () => {
             lg:to-transparent
           "
         />
+
+
 
         <div
           className="
@@ -108,30 +117,28 @@ const Hero = () => {
           "
         />
 
-      
-<div
-  className="
-    relative
-    z-10
-    flex
-    min-h-[880px]
-    flex-col
-    justify-start
-    px-5
-    pt-[34vh]
-    pb-8
 
-    sm:min-h-[820px]
-    sm:px-7
-    sm:pt-[29vh]
+        <div
+          className="
+            relative
+            z-10
+            min-h-[760px]
+            px-5
+            pt-[34dvh]
+            pb-8
 
-    lg:min-h-[600px]
-    lg:items-center
-    lg:justify-center
-    lg:px-12
-    lg:py-12
-  "
->
+            sm:min-h-[700px]
+            sm:px-7
+            sm:pt-[29dvh]
+
+            lg:flex
+            lg:min-h-[600px]
+            lg:items-center
+            lg:px-12
+            lg:py-12
+            lg:pt-12
+          "
+        >
           <div
             className="
               w-full
@@ -140,7 +147,7 @@ const Hero = () => {
               lg:max-w-[620px]
             "
           >
-          
+      
 
             <div
               className="
@@ -174,7 +181,6 @@ const Hero = () => {
               Saitring ke kaam ke liye
             </div>
 
-
             <h1
               className="
                 max-w-[390px]
@@ -206,7 +212,6 @@ const Hero = () => {
               bhi aasaan.
             </h1>
 
-
             <p
               className="
                 mt-5
@@ -227,7 +232,6 @@ const Hero = () => {
               mahine ka hisaab ek hi jagah se aasani se
               handle karein.
             </p>
-
 
             <div
               className="
@@ -316,7 +320,6 @@ const Hero = () => {
                 Sign In
               </Link>
             </div>
-
 
             <div
               className="
