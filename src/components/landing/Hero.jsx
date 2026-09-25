@@ -6,43 +6,77 @@ const Hero = () => {
   return (
     <section
       id="home"
-      className="relative w-full bg-slate-950"
+      className="
+        relative
+        -mt-0
+        bg-slate-950
+        px-0
+        py-0
+        sm:px-0
+        sm:py-0
+        lg:px-8
+        lg:py-6
+      "
     >
       <div
         className="
           relative
           mx-auto
+          min-h-[880px]
           w-full
           overflow-hidden
           bg-slate-950
 
+          sm:min-h-[820px]
+
+          lg:min-h-[600px]
           lg:max-w-[1470px]
+          lg:rounded-none
         "
       >
-  
-        <img
-          src="/images/landing-hero.png"
-          alt="Construction workers working on a building site"
-          className="
-            block
-            h-auto
-            w-full
-            object-contain
-            object-center
-          "
-        />
+        {/* ==================================================
+            HERO IMAGE
+        ================================================== */}
+
+<img
+  src="/images/landing-hero.png"
+  alt="Construction workers working on a building site"
+  className="
+    absolute
+    left-0
+    top-[-40px]
+    h-auto
+    w-full
+    object-contain
+    object-top
+
+    sm:top-[-30px]
+
+    lg:inset-0
+    lg:h-full
+    lg:w-full
+    lg:object-cover
+    lg:object-center
+  "
+/>
+        {/* ==================================================
+            LIGHT OVERLAY
+        ================================================== */}
 
         <div
           className="
-            pointer-events-none
             absolute
             inset-0
             bg-black/5
           "
         />
+
+        {/* ==================================================
+            MOBILE GRADIENT
+        ================================================== */}
+
         <div
           className="
-            pointer-events-none
             absolute
             inset-0
             bg-gradient-to-b
@@ -54,21 +88,27 @@ const Hero = () => {
           "
         />
 
+        {/* ==================================================
+            DESKTOP GRADIENT
+        ================================================== */}
+
         <div
           className="
-            pointer-events-none
             absolute
             inset-0
             hidden
             lg:block
-            bg-gradient-to-r
-            from-slate-950/90
-            via-slate-950/55
-            to-transparent
+            lg:bg-gradient-to-r
+            lg:from-slate-950/90
+            lg:via-slate-950/55
+            lg:to-transparent
           "
         />
 
-  
+        {/* ==================================================
+            EXTRA MOBILE BOTTOM GRADIENT
+        ================================================== */}
+
         <div
           className="
             pointer-events-none
@@ -76,38 +116,41 @@ const Hero = () => {
             bottom-0
             left-0
             right-0
-            h-[45%]
+            h-[48%]
+
             bg-gradient-to-t
             from-slate-950
-            via-slate-950/65
+            via-slate-950/70
             to-transparent
 
             lg:hidden
           "
         />
 
+        {/* ==================================================
+            HERO CONTENT
+        ================================================== */}
+<div
+  className="
+    relative
+    z-10
+    min-h-[880px]
+    px-5
+    pt-[360px]
+    pb-8
 
-        <div
-          className="
-            absolute
-            inset-0
-            z-10
-            flex
-            items-end
+    sm:min-h-[820px]
+    sm:px-7
+    sm:pt-[300px]
 
-            px-5
-            pb-8
-
-            sm:px-7
-            sm:pb-10
-
-            md:pb-12
-
-            lg:items-center
-            lg:px-12
-            lg:pb-0
-          "
-        >
+    lg:flex
+    lg:min-h-[600px]
+    lg:items-center
+    lg:px-12
+    lg:py-12
+    lg:pt-12
+  "
+>
           <div
             className="
               w-full
@@ -116,7 +159,10 @@ const Hero = () => {
               lg:max-w-[620px]
             "
           >
-            {/* Badge */}
+            {/* ==================================================
+                BADGE
+            ================================================== */}
+
             <div
               className="
                 mb-4
@@ -149,28 +195,25 @@ const Hero = () => {
               Saitring ke kaam ke liye
             </div>
 
-            {/* Heading */}
+            {/* ==================================================
+                HEADING
+            ================================================== */}
+
             <h1
               className="
                 max-w-[390px]
-                text-[34px]
+                text-[38px]
                 font-extrabold
                 leading-[1.02]
                 tracking-[-0.04em]
                 text-white
 
-                xs:text-[38px]
-
                 sm:max-w-[550px]
                 sm:text-[46px]
-
-                md:text-[50px]
 
                 lg:max-w-[620px]
                 lg:text-[54px]
                 lg:leading-[1.05]
-
-                xl:text-[58px]
               "
             >
               Apne Saitring ka
@@ -187,23 +230,22 @@ const Hero = () => {
               bhi aasaan.
             </h1>
 
-            {/* Description */}
+            {/* ==================================================
+                DESCRIPTION
+            ================================================== */}
+
             <p
               className="
-                mt-4
+                mt-5
                 max-w-[570px]
-                text-[13px]
-                leading-5
+                text-[14px]
+                leading-6
                 text-white/90
 
-                sm:mt-5
-                sm:text-[15px]
-                sm:leading-6
+                sm:mt-6
+                sm:text-[16px]
+                sm:leading-7
 
-                md:text-[16px]
-                md:leading-7
-
-                lg:mt-6
                 lg:text-[17px]
               "
             >
@@ -213,15 +255,17 @@ const Hero = () => {
               handle karein.
             </p>
 
-            {/* Buttons */}
+            {/* ==================================================
+                BUTTONS
+            ================================================== */}
+
             <div
               className="
-                mt-5
+                mt-6
                 grid
                 grid-cols-1
                 gap-2.5
 
-                sm:mt-6
                 sm:flex
                 sm:flex-row
                 sm:gap-3
@@ -229,6 +273,8 @@ const Hero = () => {
                 lg:mt-7
               "
             >
+              {/* CREATE ACCOUNT */}
+
               <Link
                 to="/register"
                 className="
@@ -251,6 +297,7 @@ const Hero = () => {
                   hover:bg-slate-100
                   active:scale-[0.99]
 
+                  sm:h-13
                   sm:w-auto
                   sm:px-6
                 "
@@ -267,6 +314,8 @@ const Hero = () => {
                   "
                 />
               </Link>
+
+              {/* SIGN IN */}
 
               <Link
                 to="/login"
@@ -291,6 +340,7 @@ const Hero = () => {
                   hover:text-slate-900
                   active:scale-[0.99]
 
+                  sm:h-13
                   sm:w-auto
                   sm:px-7
                 "
@@ -299,46 +349,50 @@ const Hero = () => {
               </Link>
             </div>
 
-            {/* Features */}
+            {/* ==================================================
+                FEATURES
+            ================================================== */}
+
             <div
               className="
-                mt-4
+                mt-5
                 flex
                 flex-wrap
-                gap-x-4
-                gap-y-2
-                text-[11px]
+                gap-x-5
+                gap-y-3
+                text-[12px]
                 font-medium
                 text-white/90
 
-                sm:mt-5
-                sm:gap-x-5
-                sm:text-xs
-
-                md:text-sm
+                sm:mt-6
+                sm:gap-x-6
+                sm:text-sm
               "
             >
               <span className="flex items-center gap-1.5">
                 <CheckCircle2
-                  size={14}
+                  size={15}
                   strokeWidth={2}
                 />
+
                 Employee records
               </span>
 
               <span className="flex items-center gap-1.5">
                 <CheckCircle2
-                  size={14}
+                  size={15}
                   strokeWidth={2}
                 />
+
                 Daily attendance
               </span>
 
               <span className="flex items-center gap-1.5">
                 <CheckCircle2
-                  size={14}
+                  size={15}
                   strokeWidth={2}
                 />
+
                 Monthly hisaab
               </span>
             </div>
