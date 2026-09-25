@@ -34,10 +34,6 @@ const Hero = () => {
           lg:rounded-none
         "
       >
-        {/* ==================================================
-            HERO IMAGE
-        ================================================== */}
-
 <img
   src="/images/landing-hero.png"
   alt="Construction workers working on a building site"
@@ -59,9 +55,6 @@ const Hero = () => {
     lg:object-center
   "
 />
-        {/* ==================================================
-            LIGHT OVERLAY
-        ================================================== */}
 
         <div
           className="
@@ -70,10 +63,6 @@ const Hero = () => {
             bg-black/5
           "
         />
-
-        {/* ==================================================
-            MOBILE GRADIENT
-        ================================================== */}
 
         <div
           className="
@@ -88,10 +77,6 @@ const Hero = () => {
           "
         />
 
-        {/* ==================================================
-            DESKTOP GRADIENT
-        ================================================== */}
-
         <div
           className="
             absolute
@@ -104,10 +89,6 @@ const Hero = () => {
             lg:to-transparent
           "
         />
-
-        {/* ==================================================
-            EXTRA MOBILE BOTTOM GRADIENT
-        ================================================== */}
 
         <div
           className="
@@ -127,29 +108,27 @@ const Hero = () => {
           "
         />
 
-        {/* ==================================================
-            HERO CONTENT
-        ================================================== */}
-<div
-  className="
-    relative
-    z-10
-    min-h-[880px]
-    px-5
-    pt-[360px]
-    pb-8
+      
+<div 
+  className=" 
+    relative 
+    z-10 
+    min-h-[880px] 
+    px-5 
+    pt-[305px] 
+    pb-8 
 
-    sm:min-h-[820px]
-    sm:px-7
-    sm:pt-[300px]
+    sm:min-h-[820px] 
+    sm:px-7 
+    sm:pt-[255px] 
 
-    lg:flex
-    lg:min-h-[600px]
-    lg:items-center
-    lg:px-12
-    lg:py-12
-    lg:pt-12
-  "
+    lg:flex 
+    lg:min-h-[600px] 
+    lg:items-center 
+    lg:px-12 
+    lg:py-12 
+    lg:pt-12 
+  " 
 >
           <div
             className="
@@ -159,9 +138,7 @@ const Hero = () => {
               lg:max-w-[620px]
             "
           >
-            {/* ==================================================
-                BADGE
-            ================================================== */}
+          
 
             <div
               className="
@@ -195,9 +172,6 @@ const Hero = () => {
               Saitring ke kaam ke liye
             </div>
 
-            {/* ==================================================
-                HEADING
-            ================================================== */}
 
             <h1
               className="
@@ -230,9 +204,6 @@ const Hero = () => {
               bhi aasaan.
             </h1>
 
-            {/* ==================================================
-                DESCRIPTION
-            ================================================== */}
 
             <p
               className="
@@ -255,9 +226,6 @@ const Hero = () => {
               handle karein.
             </p>
 
-            {/* ==================================================
-                BUTTONS
-            ================================================== */}
 
             <div
               className="
@@ -273,7 +241,7 @@ const Hero = () => {
                 lg:mt-7
               "
             >
-              {/* CREATE ACCOUNT */}
+
 
               <Link
                 to="/register"
@@ -315,8 +283,6 @@ const Hero = () => {
                 />
               </Link>
 
-              {/* SIGN IN */}
-
               <Link
                 to="/login"
                 className="
@@ -349,9 +315,6 @@ const Hero = () => {
               </Link>
             </div>
 
-            {/* ==================================================
-                FEATURES
-            ================================================== */}
 
             <div
               className="
