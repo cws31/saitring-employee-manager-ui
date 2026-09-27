@@ -32,6 +32,7 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
 
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
@@ -41,10 +42,22 @@ export default function RegisterPage() {
       ...prev,
       [name]: value,
     }));
+
+    setFieldErrors((prev) => {
+      const updated = { ...prev };
+      delete updated[name];
+      return updated;
+    });
   };
 
   const handleLogoChange = (e) => {
     const file = e.target.files?.[0] || null;
+
+    setFieldErrors((prev) => {
+      const updated = { ...prev };
+      delete updated.logo;
+      return updated;
+    });
 
     if (!file) {
       setLogo(null);
@@ -119,8 +132,6 @@ export default function RegisterPage() {
       return "Mobile number is required.";
     }
 
-    // User enters only the 10-digit Indian mobile number.
-    // +91 is added automatically before sending to the backend.
     const mobileRegex = /^[6-9]\d{9}$/;
 
     if (!mobileRegex.test(mobileNumber)) {
@@ -146,6 +157,7 @@ export default function RegisterPage() {
     e.preventDefault();
 
     setError("");
+    setFieldErrors({});
 
     const validationError = validateForm();
 
@@ -184,22 +196,63 @@ export default function RegisterPage() {
 
       navigate("/login");
     } catch (err) {
-      console.error("REGISTRATION ERROR:", err);
-
       const responseData = err.response?.data;
 
-      let errorMessage =
-        "Registration failed. Please try again.";
+      if (
+        err.response?.status === 400 &&
+        responseData &&
+        typeof responseData === "object" &&
+        !Array.isArray(responseData)
+      ) {
+        const possibleFieldErrors = {};
 
-      if (typeof responseData === "string") {
-        errorMessage = responseData;
-      } else if (responseData?.message) {
-        errorMessage = responseData.message;
-      } else if (responseData?.error) {
-        errorMessage = responseData.error;
+        const supportedFields = [
+          "ownerName",
+          "organizationName",
+          "email",
+          "mobileNumber",
+          "password",
+          "logo",
+        ];
+
+        supportedFields.forEach((field) => {
+          if (
+            typeof responseData[field] === "string" &&
+            responseData[field].trim()
+          ) {
+            possibleFieldErrors[field] = responseData[field];
+          }
+        });
+
+        if (Object.keys(possibleFieldErrors).length > 0) {
+          setFieldErrors(possibleFieldErrors);
+          setError("");
+        } else {
+          let errorMessage =
+            "Registration failed. Please try again.";
+
+          if (responseData?.message) {
+            errorMessage = responseData.message;
+          } else if (responseData?.error) {
+            errorMessage = responseData.error;
+          }
+
+          setError(errorMessage);
+        }
+      } else {
+        let errorMessage =
+          "Registration failed. Please try again.";
+
+        if (typeof responseData === "string") {
+          errorMessage = responseData;
+        } else if (responseData?.message) {
+          errorMessage = responseData.message;
+        } else if (responseData?.error) {
+          errorMessage = responseData.error;
+        }
+
+        setError(errorMessage);
       }
-
-      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -238,8 +291,6 @@ export default function RegisterPage() {
             lg:px-10
           "
         >
-
-          {/* Brand */}
 
           <Link
             to="/"
@@ -306,7 +357,6 @@ export default function RegisterPage() {
             </div>
           </Link>
 
-          {/* Desktop Sign In */}
 
           <Link
             to="/login"
@@ -575,6 +625,15 @@ export default function RegisterPage() {
                   />
 
                 </div>
+
+                {fieldErrors.ownerName && (
+                  <p
+                    role="alert"
+                    className="mt-1.5 text-xs text-red-600"
+                  >
+                    {fieldErrors.ownerName}
+                  </p>
+                )}
               </div>
 
               <div>
@@ -636,6 +695,15 @@ export default function RegisterPage() {
                   />
 
                 </div>
+
+                {fieldErrors.organizationName && (
+                  <p
+                    role="alert"
+                    className="mt-1.5 text-xs text-red-600"
+                  >
+                    {fieldErrors.organizationName}
+                  </p>
+                )}
               </div>
 
               <div>
@@ -697,6 +765,15 @@ export default function RegisterPage() {
                   />
 
                 </div>
+
+                {fieldErrors.email && (
+                  <p
+                    role="alert"
+                    className="mt-1.5 text-xs text-red-600"
+                  >
+                    {fieldErrors.email}
+                  </p>
+                )}
               </div>
 
               {/* Mobile Number */}
@@ -763,6 +840,12 @@ export default function RegisterPage() {
                         ...prev,
                         mobileNumber: value,
                       }));
+
+                      setFieldErrors((prev) => {
+                        const updated = { ...prev };
+                        delete updated.mobileNumber;
+                        return updated;
+                      });
                     }}
                     autoComplete="tel"
                     placeholder="9876543210"
@@ -794,6 +877,15 @@ export default function RegisterPage() {
                 <p className="mt-1.5 text-xs text-slate-400">
                   Enter your 10-digit mobile number.
                 </p>
+
+                {fieldErrors.mobileNumber && (
+                  <p
+                    role="alert"
+                    className="mt-1.5 text-xs text-red-600"
+                  >
+                    {fieldErrors.mobileNumber}
+                  </p>
+                )}
               </div>
 
               <div>
@@ -893,6 +985,15 @@ export default function RegisterPage() {
                 <p className="mt-1.5 text-xs text-slate-400">
                   Password must be between 8 and 100 characters.
                 </p>
+
+                {fieldErrors.password && (
+                  <p
+                    role="alert"
+                    className="mt-1.5 text-xs text-red-600"
+                  >
+                    {fieldErrors.password}
+                  </p>
+                )}
               </div>
 
               <div>
@@ -1043,6 +1144,15 @@ export default function RegisterPage() {
                   )}
 
                 </label>
+
+                {fieldErrors.logo && (
+                  <p
+                    role="alert"
+                    className="mt-1.5 text-xs text-red-600"
+                  >
+                    {fieldErrors.logo}
+                  </p>
+                )}
               </div>
 
               <button
