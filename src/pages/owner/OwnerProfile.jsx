@@ -1,4 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+
 import {
   User,
   Building2,
@@ -63,7 +68,9 @@ export default function OwnerProfile() {
 
     return () => {
       if (logoPreview) {
-        URL.revokeObjectURL(logoPreview);
+        URL.revokeObjectURL(
+          logoPreview
+        );
       }
     };
   }, []);
@@ -110,6 +117,26 @@ export default function OwnerProfile() {
         website:
           data.website || "",
       });
+
+      
+      await updateOwner({
+        ownerId: data.id,
+
+        ownerName:
+          data.ownerName,
+
+        organizationName:
+          data.organizationName,
+
+        email:
+          data.email,
+
+        mobileNumber:
+          data.mobileNumber,
+
+        logoVersion:
+          data.logoVersion || null,
+      });
     } catch (err) {
       console.error(
         "[PROFILE] Failed to load profile:",
@@ -137,9 +164,6 @@ export default function OwnerProfile() {
     }));
   };
 
-  // ==========================================
-  // LOGO SELECT
-  // ==========================================
 
   const handleLogoChange = (
     event
@@ -169,7 +193,10 @@ export default function OwnerProfile() {
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
+    if (
+      file.size >
+      5 * 1024 * 1024
+    ) {
       setError(
         "Logo size must not exceed 5 MB."
       );
@@ -190,6 +217,7 @@ export default function OwnerProfile() {
     setLogoFile(file);
     setLogoPreview(preview);
   };
+
 
   const handleDeleteLogo = async () => {
     if (!owner?.ownerId) {
@@ -216,8 +244,10 @@ export default function OwnerProfile() {
         fileInputRef.current.value = "";
       }
 
+     
       await updateOwner({
         logoUrl: null,
+        logoVersion: null,
       });
 
       setSuccess(
@@ -254,8 +284,10 @@ export default function OwnerProfile() {
           logoFile
         );
 
+     
       await updateOwner({
         ownerId: response.id,
+
         ownerName:
           response.ownerName,
 
@@ -267,6 +299,9 @@ export default function OwnerProfile() {
 
         mobileNumber:
           response.mobileNumber,
+
+        logoVersion:
+          response.logoVersion || null,
       });
 
       setLogoFile(null);
@@ -287,10 +322,12 @@ export default function OwnerProfile() {
         "Profile updated successfully."
       );
 
-      // Reload actual logo from backend
-      if (response.logoExists) {
-        window.location.reload();
-      }
+      /*
+       * DO NOT reload the page.
+       *
+       * Changing logoVersion causes AuthContext
+       * to automatically fetch the new logo.
+       */
     } catch (err) {
       console.error(
         "[PROFILE] Failed to update profile:",
@@ -305,7 +342,6 @@ export default function OwnerProfile() {
       setSaving(false);
     }
   };
-
 
   if (loading) {
     return (

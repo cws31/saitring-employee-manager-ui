@@ -35,6 +35,7 @@ export function AuthProvider({ children }) {
     return savedToken;
   });
 
+
   useEffect(() => {
     if (!token || !owner?.ownerId) {
       return;
@@ -47,7 +48,8 @@ export function AuthProvider({ children }) {
       try {
         const logoBlob =
           await authApi.getLogo(
-            owner.ownerId
+            owner.ownerId,
+            owner.logoVersion
           );
 
         if (
@@ -101,7 +103,12 @@ export function AuthProvider({ children }) {
         URL.revokeObjectURL(objectUrl);
       }
     };
-  }, [token, owner?.ownerId]);
+  }, [
+    token,
+    owner?.ownerId,
+    owner?.logoVersion,
+  ]);
+
   const login = async (
     identifier,
     password
@@ -159,6 +166,9 @@ export function AuthProvider({ children }) {
 
         logoUrl:
           null,
+
+        logoVersion:
+          response.logoVersion || null,
       };
 
       localStorage.setItem(
@@ -206,6 +216,7 @@ export function AuthProvider({ children }) {
       return newOwner;
     });
   };
+
   const logout = () => {
     localStorage.removeItem(
       "ownerToken"

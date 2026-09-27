@@ -28,11 +28,16 @@ const authApi = {
     return response.data;
   },
 
-  getLogo: async (ownerId) => {
+  getLogo: async (ownerId, logoVersion) => {
     const response = await axiosClient.get(
       `/owners/${ownerId}/logo`,
       {
         responseType: "blob",
+        params: logoVersion
+          ? {
+              v: logoVersion,
+            }
+          : undefined,
       }
     );
 
@@ -47,7 +52,10 @@ const authApi = {
     return response.data;
   },
 
-  updateProfile: async (profileData, logoFile) => {
+  updateProfile: async (
+    profileData,
+    logoFile
+  ) => {
     const formData = new FormData();
 
     formData.append(
@@ -61,13 +69,17 @@ const authApi = {
     );
 
     if (logoFile) {
-      formData.append("logo", logoFile);
+      formData.append(
+        "logo",
+        logoFile
+      );
     }
 
-    const response = await axiosClient.put(
-      "/owners/profile",
-      formData
-    );
+    const response =
+      await axiosClient.put(
+        "/owners/profile",
+        formData
+      );
 
     return response.data;
   },
