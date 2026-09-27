@@ -35,10 +35,6 @@ export default function LoginPage() {
 
   const otpInputRef = useRef(null);
 
-  useEffect(() => {
-    console.log("[LOGIN PAGE] Current step:", step);
-  }, [step]);
-
   const handleChange = (e) => {
     const { name, value } = e.target;
 
@@ -50,11 +46,6 @@ export default function LoginPage() {
 
   const handleIdentifierChange = (e) => {
     const value = e.target.value;
-
-    // Keep existing logic:
-    // Mobile numbers are still accepted internally.
-    // However, the UI now asks the user to use email
-    // because OTP verification is email-only.
 
     if (/^\d*$/.test(value)) {
       setForm((prev) => ({
@@ -73,38 +64,17 @@ export default function LoginPage() {
   const handleLogin = async (e) => {
     e.preventDefault();
 
-    console.log("[LOGIN PAGE] Login form submitted");
-
-    console.log(
-      "[LOGIN PAGE] Identifier:",
-      form.identifier
-    );
-
     setError("");
     setSuccess("");
 
     if (!form.identifier.trim() || !form.password) {
-      console.warn(
-        "[LOGIN PAGE] Identifier/password missing"
-      );
-
-      setError(
-        "Email and password are required."
-      );
-
+      setError("Email and password are required.");
       return;
     }
 
     try {
       setLoading(true);
 
-      console.log(
-        "[LOGIN PAGE] Calling AuthContext.login()..."
-      );
-
-      // Existing logic kept unchanged.
-      // If identifier contains only digits,
-      // automatically add +91 before sending to backend.
       const identifier = /^\d+$/.test(form.identifier.trim())
         ? `+91${form.identifier.trim()}`
         : form.identifier.trim();
@@ -114,16 +84,7 @@ export default function LoginPage() {
         form.password
       );
 
-      console.log(
-        "[LOGIN PAGE] Login response:",
-        response
-      );
-
       if (response?.otpRequired) {
-        console.log(
-          "[LOGIN PAGE] OTP required. Switching to OTP screen."
-        );
-
         setStep("otp");
 
         setSuccess(
@@ -140,43 +101,18 @@ export default function LoginPage() {
         return;
       }
 
-      console.warn(
-        "[LOGIN PAGE] Backend did not request OTP."
-      );
-
       setError(
         "OTP verification is required before continuing."
       );
     } catch (err) {
-      console.error(
-        "[LOGIN PAGE] LOGIN ERROR:",
-        err
-      );
-
-      console.error(
-        "[LOGIN PAGE] Response:",
-        err?.response
-      );
-
-      console.error(
-        "[LOGIN PAGE] Response data:",
-        err?.response?.data
-      );
-
       if (err.response?.status === 401) {
-        setError(
-          "Invalid email or password."
-        );
+        setError("Invalid email or password.");
       } else if (err.response?.data?.message) {
-        setError(
-          err.response.data.message
-        );
+        setError(err.response.data.message);
       } else if (
         typeof err.response?.data === "string"
       ) {
-        setError(
-          err.response.data
-        );
+        setError(err.response.data);
       } else if (err.message) {
         setError(err.message);
       } else {
@@ -192,11 +128,6 @@ export default function LoginPage() {
   const handleOtpChange = (e) => {
     const value = e.target.value.replace(/\D/g, "");
 
-    console.log(
-      "[LOGIN PAGE] OTP input:",
-      value
-    );
-
     if (value.length <= 6) {
       setOtp(value);
       setError("");
@@ -206,32 +137,10 @@ export default function LoginPage() {
   const handleVerifyOtp = async (e) => {
     e.preventDefault();
 
-    console.log(
-      "=================================================="
-    );
-
-    console.log(
-      "[LOGIN PAGE] VERIFY FORM SUBMITTED"
-    );
-
-    console.log(
-      "[LOGIN PAGE] Identifier:",
-      form.identifier
-    );
-
-    console.log(
-      "[LOGIN PAGE] OTP length:",
-      otp.length
-    );
-
     setError("");
     setSuccess("");
 
     if (!/^\d{6}$/.test(otp)) {
-      console.warn(
-        "[LOGIN PAGE] Invalid OTP format"
-      );
-
       setError(
         "Please enter the 6-digit verification code."
       );
@@ -242,11 +151,6 @@ export default function LoginPage() {
     try {
       setLoading(true);
 
-      console.log(
-        "[LOGIN PAGE] Calling AuthContext.verifyOtp()..."
-      );
-
-      // Existing identifier logic kept unchanged.
       const identifier = /^\d+$/.test(form.identifier.trim())
         ? `+91${form.identifier.trim()}`
         : form.identifier.trim();
@@ -256,25 +160,7 @@ export default function LoginPage() {
         otp
       );
 
-      console.log(
-        "[LOGIN PAGE] verifyOtp() completed successfully."
-      );
-
-      console.log(
-        "[LOGIN PAGE] Verify response:",
-        response
-      );
-
-      console.log(
-        "[LOGIN PAGE] JWT exists:",
-        Boolean(response?.token)
-      );
-
       if (!response?.token) {
-        console.error(
-          "[LOGIN PAGE] No JWT returned from backend."
-        );
-
         throw new Error(
           "Authentication token was not returned."
         );
@@ -284,51 +170,10 @@ export default function LoginPage() {
         location.state?.from ||
         "/dashboard";
 
-      console.log(
-        "[LOGIN PAGE] Destination:",
-        destination
-      );
-
-      console.log(
-        "[LOGIN PAGE] Navigating to dashboard..."
-      );
-
       navigate(destination, {
         replace: true,
       });
-
-      console.log(
-        "[LOGIN PAGE] navigate() called."
-      );
     } catch (err) {
-      console.error(
-        "=================================================="
-      );
-
-      console.error(
-        "[LOGIN PAGE] OTP VERIFICATION ERROR:",
-        err
-      );
-
-      console.error(
-        "[LOGIN PAGE] Error message:",
-        err?.message
-      );
-
-      console.error(
-        "[LOGIN PAGE] Error response:",
-        err?.response
-      );
-
-      console.error(
-        "[LOGIN PAGE] Error response data:",
-        err?.response?.data
-      );
-
-      console.error(
-        "=================================================="
-      );
-
       if (err.response?.status === 401) {
         setError(
           err.response?.data?.message ||
@@ -337,15 +182,11 @@ export default function LoginPage() {
       } else if (
         err.response?.data?.message
       ) {
-        setError(
-          err.response.data.message
-        );
+        setError(err.response.data.message);
       } else if (
         typeof err.response?.data === "string"
       ) {
-        setError(
-          err.response.data
-        );
+        setError(err.response.data);
       } else if (err.message) {
         setError(err.message);
       } else {
@@ -354,19 +195,11 @@ export default function LoginPage() {
         );
       }
     } finally {
-      console.log(
-        "[LOGIN PAGE] Verification loading finished."
-      );
-
       setLoading(false);
     }
   };
 
   const handleBackToLogin = () => {
-    console.log(
-      "[LOGIN PAGE] Returning to login screen."
-    );
-
     setStep("login");
     setOtp("");
     setError("");
@@ -375,16 +208,8 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (step === "otp") {
-      console.log(
-        "[LOGIN PAGE] OTP screen mounted."
-      );
-
       const timer = setTimeout(() => {
         otpInputRef.current?.focus();
-
-        console.log(
-          "[LOGIN PAGE] OTP input focused."
-        );
       }, 100);
 
       return () => clearTimeout(timer);
